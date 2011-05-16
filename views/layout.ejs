@@ -69,11 +69,11 @@ $(function(){
   function prettyTime(){
     var now = (new Date);
     $("time").each(function(){
-      var a = (now-(new Date($(this).attr("data"))))/1000;
+      var a = parseInt((now-(new Date($(this).attr("data"))))/1000,10);
       for(b=[60,60,24],c=0;a>2*b[c];a/=b[c++]);
       $(this).html(~~a+" "+"sec0min0hour0day".split(0)[c]+"s ago");
     });
-    setTimeout(prettyTime,30*000);
+    setTimeout(prettyTime,30*1000);
   }
 
   function draw(backlog){
