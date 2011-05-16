@@ -1,17 +1,121 @@
 <!doctype html>
 <html><head>
   <title>IRC on the cloud</title>
-  <style type="text/css"></style>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <link type="text/css" href="/css/reset.css" rel="stylesheet" />
+  <!--
+  <link type="text/css" href="http://taitems.github.com/Aristo-jQuery-UI-Theme/css/Aristo/jquery-ui-1.8.7.custom.css" rel="stylesheet" />
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.0/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/jquery-ui.min.js"></script>
+  -->
+  <link type="text/css" href="/css/aristo.css" rel="stylesheet" />
+  <script src="/js/jquery.js"></script>
+  <script src="/js/jquery-ui.js"></script>
+  
   <script src="/socket.io/socket.io.js"></script> 
+  <style type="text/css">
+    body,#tabs ul{background-color:#EFF0F0;}
+    #main{padding:10px;}
+    ul li:first-child a{color:#d42;}
+    #tabs>div{position:relative;}
+    h4{margin-right:180px;border:1px solid #DDD;background-color:#FFC;padding:10px;font-weight:bold;color:#555;text-shadow:0 1px 0 #FFF;margin-bottom:10px;line-height: 15pt;height: 40px;}
+    section{margin-right:180px;overflow:auto;}
+    ol{position:absolute;right:0;top:0; width: 150px;margin:0;padding: 15px;border-left: 1px dotted #AAA;list-style-type: none;overflow:auto;background-color:#F2F4FF;}
+    ol li{padding:5px;}
+    p{font-family: georgia;font-size: 10pt;line-height: 14pt;background-color:#FFF;padding: 5px;margin: 5px 0;line-height: 20pt;-webkit-transition:all 0.5s ease-out;cursor:pointer;}
+    p:nth-child(2n){background-color:#F0F2FF;border:1px solid #E0E2E9;border-width:1px 0;}
+    time{width: 100px;display: inline-block;float:right;color:#888;-webkit-transition:all 0.5s ease-out;}
+    time,time:before,time:after{font-size:10px;font-family:verdana;}
+    time:before{content:'[';padding-right:4px;color:#CCC;}
+    time:after{content:']';padding-left:4px;color:#CCC;}
+    p:hover{border-color:#AAA;}
+    p:hover time{color:#111;}
+    u{text-decoration:none;font-weight:bold;color:#444;padding-right:5px;margin-right:5px;}
+    p>u:after{content:':';padding:0 3px;font-weight:normal;}
+    span{color: #222;}
+  </style>
 </head>
 <body>
   <div id="main">
+    <div id="tabs">
+      <ul><li><a href="#server">Freenode</a></li></ul>
+      <div id="server"></div>
+    </div>
   </div>
 <script type="text/javascript">
-  var console = console || {};
+$(function(){
+  var console = window.console || {};
   if(!console.log) console.log = function(){};
+  var tabList = $("#tabs").tabs();
+  var partial = "<p><time data='{time}'></time><u>{from}</u><span>{linkify(text)}</span></p>";
+
+  var entities = {"<":"&lt;",">":"&gt;",'&':'&amp;','"':'&quot;',"'": '&#32;'};
+  function linkify(text){
+    text = text.replace(/[&"'><]/g,function(match){return entities[match]});
+    text = text.replace(/((https?):\/\/([-\w\.]+)+(:\d+)?(\/([\w\/_\.\-#]*(\?\S+)?)?)?)/gm,'<a href="$1" target="_blank">$1</a>');
+    text = text.replace(/^\@?([\w]*):/,function(match){return (match==='http')?match:match.bold();});
+    return text;
+  }
+  function render(template,data){return template.replace(/{[\w\.\(\)]+}/g,function(match){var token=match.replace(/[\{\}]/g,"");try{with(data){return eval(token);}}catch(e){return"";}});}
+  function hashroute(a,b,c){function e(d){d=location.hash;if(d!=c){for(b=0,c=d;(d=a[b++])&&!(d=d.exec(c));b++);a[b](d)}};e();setInterval(e,b||99)};
+  
+
+  function rescale(){
+    var h = $(window).height();
+    $("div.ui-tabs-panel").height(h-80);
+    $("ol").height(h-90);
+    $("section").height(h-150)
+  }
+  function prettyTime(){
+    var now = (new Date);
+    $("time").each(function(){
+      var a = (now-(new Date($(this).attr("data"))))/1000;
+      for(b=[60,60,24],c=0;a>2*b[c];a/=b[c++]);
+      $(this).html(~~a+" "+"sec0min0hour0day".split(0)[c]+"s ago");
+    });
+    setTimeout(prettyTime,30*000);
+  }
+
+  function draw(backlog){
+    var channel, name, id, sidebar, log;
+    var msg, nick;
+    for(name in backlog){
+      channel = backlog[name];
+      id = "#tab_" + name.replace(/[#\-\.]/g,"");
+      if(backlog.hasOwnProperty(name) && typeof channel === 'object' && typeof channel.topic === 'string'){
+        tabList.tabs("add", id, name );
+        id = $(id).html("<h4></h4><section></section><ol></ol>");
+        id.find("h4").html(linkify(channel.topic));
+        sidebar = id.find("ol");
+        log = id.find("section").empty();
+        for(msg in channel.messages){
+          msg = channel.messages[msg];
+          log.prepend(render(partial,msg));
+        }
+        for(nick in channel.names){
+          sidebar.append("<li>"+nick+"</li>");
+        }
+      }
+    }
+    rescale();
+    $(window).resize(rescale);
+    $("p u", $("#tabs")).live("click",function(e){
+      console.log($(this).html());
+    });
+    prettyTime();
+  }
+  $(document).keydown(function(e) {
+    if(e.ctrlKey && !!String.fromCharCode(e.keyCode).match(/[0-9]/)){
+      var index = e.keyCode - '0'.charCodeAt(0);
+      var tabs = $("#tabs li");
+      if(index >= tabs.length) return;
+      tabList.tabs('select', index);
+    }
+  });
+  hashroute([
+    /^$/, function(){tabList.tabs('select',0);}
+    , function(){tabList.tabs('select',0);}
+  ]);
 
   var socket = new io.Socket(location.hostname,{"port":location.port}); 
   socket.connect();
@@ -19,11 +123,18 @@
     console.log("socket connected");
   });
   socket.on('message', function(m){
-    console.log(m);
+    if(m.backlog){
+      draw(m.backlog);
+    }else if(m.message || m.dump){
+      m = m.message || m.dump;
+      $("#tab_" + m.to.replace(/[#\-\.]/g,"") + " section").prepend(render(partial,m));
+    }
+    else console.log(m);
   }); 
   socket.on('disconnect', function(){
     console.log("socket disconnected, trying to reconnect in 10 seconds");
     setTimeout(socket.connect,10*1000);
-  }); 
-</script> 
+  });
+});
+</script>
 </body></html>

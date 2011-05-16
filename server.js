@@ -1,13 +1,16 @@
-var io  = require("socket.io"),
+var  fs = require('fs'),
+     io = require("socket.io"),
     irc = require("irc"),
 express = require('express'),
 connect = require('connect'),
  events = require('events');
     app = express.createServer();
 
+var profiler = require("v8-profiler");
+
 var  port = 10023,
    server = "chat.freenode.net"
- channels = ["##javascript", "#html5", "#Node.js", "#jquery", "#css", "#ubuntu"],
+ channels = ["##javascript", "#html5", "#Node.js", "#jquery", "#css", "#nginx"],
      nick = "AsDfGh123", //"NetRoY",
      pass = "IAmAdi123",
   MAX_LOG = 100;
@@ -27,12 +30,21 @@ app.configure(function(){
 app.get("/", function(req,res){
   res.render('index.ejs');
 });
-
 app.listen(10023);
 
 var backlog = {};
+try{
+  fs.readFile(__dirname + "/dump.json", function(err, data){
+    if(err) return;
+    data = data.toString();
+    if(data.length > 100) {
+      backlog = JSON.parse("("+data+")");
+    }
+  });
+}catch(e){}
+
 var mQueue = new events.EventEmitter;
-var socket = io.listen(app); 
+var socket = io.listen(app);
 socket.on('connection', function(client){ 
   console.log("connected");
   client.send({backlog: backlog});
@@ -45,7 +57,19 @@ socket.on('connection', function(client){
 });
 
 console.log("server started at http://127.0.0.1:10023/");
+/*
+(function dumpBackLog(){
+  var dump = JSON.stringify(backlog);
+  if(dump.length < 100) setInterval(dumpBackLog,60*1000);
+  else fs.writeFile(__dirname + "/dump.json", dump, function (err) {
+    if(!err) setInterval(dumpBackLog,30*1000);
+  });
+})();
+*/
 
+/*
+ * API: https://github.com/martynsmith/node-irc/blob/master/API.md
+ */
 var ircClient = new irc.Client(server, nick, {
   channels: [],
   userName: nick,
@@ -84,16 +108,18 @@ ircClient.addListener('part', function(channel, nick){
   socket.broadcast({channel:channel, part:nick});
 });
 ircClient.addListener('message', function (from, to, text) {
-  var packet = {from: from, to: to, text: text};
+  var now = new Date();
+  var packet = {from: from, to: to, text: text, time: now.toUTCString()};
   if(!!backlog[to] && to.indexOf("#") === 0){
     var clog = backlog[to]["messages"];
     clog.push(packet);
     if(clog.length > MAX_LOG) clog.shift();    
   }else console.log(packet);
-  socket.broadcast({dump:packet});
+  socket.broadcast({message:packet});
 });
 mQueue.addListener('message', function(message){
   if(!!backlog[message.channel]){
+    console.log(message)
     ircClient.say(message.text);
   }
 });
