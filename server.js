@@ -6,8 +6,6 @@ connect = require('connect'),
  events = require('events');
     app = express.createServer();
 
-var profiler = require("v8-profiler");
-
 var  port = 10023,
    server = "chat.freenode.net"
  channels = ["##javascript", "#html5", "#Node.js", "#jquery", "#css", "#nginx"],
