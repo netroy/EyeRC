@@ -10,7 +10,7 @@ var  port = 10023,
    server = "chat.freenode.net"
  channels = ["##javascript", "#html5", "#Node.js", "#jquery", "#css", "#nginx"],
      nick = "AsDfGh123", //"NetRoY",
-     pass = "IAmAdi123",
+     pass = "password",
   MAX_LOG = 100;
 
 "use strict";
