@@ -17,6 +17,7 @@
     body,#tabs ul{background-color:#EFF0F0;}
     #main{padding:10px;}
     ul li:first-child a{color:#d42;}
+    ul sup{position: static;text-shadow: 0 1px 0 white;color: #222;border-radius: 10px;font-size: 10px;margin-left: 5px;font-weight: bold;line-height: 1px;border: 1px solid #BBB;background-color:#CCC;padding: 4px;}
     #tabs>div{position:relative;}
     h4{margin-right:180px;border:1px solid #DDD;background-color:#FFC;padding:10px;font-weight:bold;color:#555;text-shadow:0 1px 0 #FFF;margin-bottom:10px;line-height: 15pt;height: 40px;}
     section{margin-right:180px;overflow:auto;}
@@ -32,6 +33,7 @@
     p:hover time{color:#111;}
     u{text-decoration:none;font-weight:bold;color:#444;padding-right:5px;margin-right:5px;}
     p>u:after{content:':';padding:0 3px;font-weight:normal;}
+    i{font-size: 10px;display: block;text-align: right;padding: 0 20px;color: black;}
     span{color: #222;}
   </style>
 </head>
@@ -46,8 +48,7 @@
 $(function(){
   var console = window.console || {};
   if(!console.log) console.log = function(){};
-  var tabList = $("#tabs").tabs();
-  var partial = "<p><time data='{time}'></time><u>{from}</u><span>{linkify(text)}</span></p>";
+  var partial = "<p><time data='{time}'>{pretty(time)}</time><u>{from}</u><span>{linkify(text)}</span></p>";
 
   var entities = {"<":"&lt;",">":"&gt;",'&':'&amp;','"':'&quot;',"'": '&#32;'};
   function linkify(text){
@@ -66,26 +67,47 @@ $(function(){
     $("ol").height(h-90);
     $("section").height(h-150)
   }
+  function pretty(a){
+    var a = ((new Date)-(new Date(a)))/1000;
+    for(b=[60,60,24],c=0;a>b[c];a/=b[c++]);
+    a = ~~a;
+    return (c===0 && a < 10)?"now":(a+" "+"sec0min0hour0day".split(0)[c]+(a>1?"s":"")+" ago");
+  }
   function prettyTime(){
-    var now = (new Date);
     $("time").each(function(){
-      var a = parseInt((now-(new Date($(this).attr("data"))))/1000,10);
-      for(b=[60,60,24],c=0;a>2*b[c];a/=b[c++]);
-      $(this).html((c==0 && ~~a < 10)?"now":(~~a+" "+"sec0min0hour0day".split(0)[c]+"s ago"));
-      //$(this).html(~~a+" "+"sec0min0hour0day".split(0)[c]+"s ago");
+      $(this).html(pretty($(this).attr("data")));
     });
     setTimeout(prettyTime,30*1000);
   }
 
+  var tabMap = {}, selectedTab = 0;
+  var tabList = $("#tabs").tabs({'add':function(e,ui){
+    if(ui.index === 0) return;
+    var tab = $(ui.tab);
+    var sup = tab.append("<sup><\/sup>").find("sup");
+    tabMap[tab.find("span").html()] = {
+      "index": ui.index,
+      "tab": tab,
+      "panel": $(ui.panel),
+      "note": sup
+    };
+  }, select:function(e,ui){
+    selectedTab = $(ui.tab).find("span").html();
+    document.cookie = "selectedTab="+selectedTab;
+  }});
+
   function draw(backlog){
     var channel, name, id, sidebar, log;
     var msg, nick;
+
     for(name in backlog){
       channel = backlog[name];
       id = "#tab_" + name.replace(/[#\-\.]/g,"");
+
       if(backlog.hasOwnProperty(name) && typeof channel === 'object' && typeof channel.topic === 'string'){
         tabList.tabs("add", id, name );
-        id = $(id).html("<h4></h4><section></section><ol></ol>");
+        id = $(id);
+        id.html("<h4></h4><section></section><ol></ol>");
         id.find("h4").html(linkify(channel.topic));
         sidebar = id.find("ol");
         log = id.find("section").empty();
@@ -94,17 +116,22 @@ $(function(){
           log.prepend(render(partial,msg));
         }
         for(nick in channel.names){
-          sidebar.append("<li>"+nick+"</li>");
+          sidebar.append("<li><u>"+nick+"</u></li>");
+        }
+        if(tabMap[name]){
+          tabMap[name].note.html($("p",log).length);
         }
       }
     }
+    if(!!(tabCookie = document.cookie.match(/selectedTab=(#{1,2}[\w\.\-]+)/))){
+      selectedTab = tabCookie[1];
+      tabList.tabs('select',tabMap[selectedTab].index);
+    }
     rescale();
     $(window).resize(rescale);
-    $("p u", $("#tabs")).live("click",function(e){
-      console.log($(this).html());
-    });
     prettyTime();
   }
+
   $(document).keydown(function(e) {
     if(e.ctrlKey && !!String.fromCharCode(e.keyCode).match(/[0-9]/)){
       var index = e.keyCode - '0'.charCodeAt(0);
@@ -113,6 +140,7 @@ $(function(){
       tabList.tabs('select', index);
     }
   });
+
   hashroute([
     /^$/, function(){tabList.tabs('select',0);}
     , function(){tabList.tabs('select',0);}
@@ -123,18 +151,31 @@ $(function(){
   socket.on('connect', function(){
     console.log("socket connected");
   });
-  socket.on('message', function(m){
+  socket.on('message', function(m,id){
     if(m.backlog){
       draw(m.backlog);
     }else if(m.message || m.dump){
       m = m.message || m.dump;
-      $("#tab_" + m.to.replace(/[#\-\.]/g,"") + " section").prepend(render(partial,m));
+      id = "#tab_" + m.to.replace(/[#\-\.]/g,"");
+      $(id + " section").prepend(render(partial,m));
+      if(tabMap[m.to]){
+        tabMap[m.to].note.html($(id + " section p").length);
+      }
+    }else if(m.join || m.part){
+      id = "#tab_" + m.channel.replace(/[#\-\.]/g,"");
+      m = (m.join)?m.join+" joined":m.part+" left";
+      $(id + " section").prepend("<i>"+(m)+" the room</i>");
+    }else if(m.channel){
+      $("#server").prepend("<p>"+JSON.stringify(m)+"</p>");
+      //console.log(m);
     }
-    else console.log(m);
   }); 
   socket.on('disconnect', function(){
     console.log("socket disconnected, trying to reconnect in 10 seconds");
     setTimeout(socket.connect,10*1000);
+  });
+  $("p, ol li", $("#tabs")).live("click",function(e){
+    console.log($(this).find("u").html());
   });
 });
 </script>
