@@ -106,7 +106,7 @@ $(function(){
       var server = $("#server section");
       for(msg in backlog['server']){
         msg = backlog['server'][msg];
-        server.append("<p>"+msg.replace(/[\r\n]+/,"<br/>")+"<\/p>");
+        server.append("<p>"+msg+"<\/p>");
         server[0].scrollTop = server[0].scrollHeight;
       }
     }
@@ -174,7 +174,6 @@ $(function(){
   $("p, ol li", $("#tabs")).live("click",function(e){
     console.log($(this).find("u").html());
   });
-  
 
   var postbox = $("#postbox");
   $(document).keydown(function(e) {
@@ -184,10 +183,16 @@ $(function(){
       if(index >= tabs.length) return;
       tabList.tabs('select', index);
     }else if(e.which === 13 && e.target.nodeName.toLowerCase() === 'input'){
-      var message = postbox.val();
-      if(message.length > 0 && socket.connected === true){
-        socket.send({"channel":selectedTab,"message":message});
-        postbox.val("")
+      var text = postbox.val();
+      if(text.length > 0 && text.connected === true){
+        socket.send({"channel":selectedTab,"text":text});
+        postbox.val("");
+        id = $("section", $(tabId(selectedTab))).append(render(partial,{
+          from: EYERC.nick, 
+          channel: selectedTab, 
+          text: text, 
+          time: (new Date).toUTCString()
+        }));
       }
     }
   });
