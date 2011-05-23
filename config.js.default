@@ -1,0 +1,18 @@
+var config = {
+  http: {
+    port: 10023
+  },
+  irc: {
+    server: "irc.freenode.net",
+    channels: ["#nodester", "#Node.js", "##javascript", "#html5", "#jquery", "#css", "#nginx", "#mongodb", "#redis", "#couchdb"],
+    nick: "YourNick",
+    name: "YourName",
+    pass: null,
+  },
+  twitter: {
+    key: "YourOAuthConsumerKey",
+    secret: "YourOAuthConsumerSecret"
+  },
+  MAX_LOG: 150
+};
+exports.config = config;
