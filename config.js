@@ -5,9 +5,9 @@ var config = {
   irc: {
     server: "irc.freenode.net",
     channels: ["#nodester", "#Node.js", "##javascript", "#html5", "#jquery", "#css", "#nginx", "#mongodb", "#redis", "#couchdb"],
-    nick: "NetRoY",
-    name: "Aditya Y",
-    pass: "IAmAdi123",
+    nick: "LolaLiLu",
+    name: "Aditya",
+    pass: null,
   },
   twitter: {
     key: "QwG0YGi02cJBl59Uv7w3jg",
