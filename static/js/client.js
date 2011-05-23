@@ -163,7 +163,7 @@ $(function(){
         sidebar.append("<li><u>"+nick+"</u></li>");
       }
     }else if(m.motd){
-      $("#server section").prepend("<p>"+m.motd.replace(/[\r\n]+/,"<br/>")+"</p>");
+      $("#server section").append("<p>"+m.motd.replace(/[\r\n]+/,"<br/>")+"</p>");
     }
   }); 
   socket.on('disconnect', function(){
@@ -184,7 +184,7 @@ $(function(){
       tabList.tabs('select', index);
     }else if(e.which === 13 && e.target.nodeName.toLowerCase() === 'input'){
       var text = postbox.val();
-      if(text.length > 0 && text.connected === true){
+      if(selectedTab !== 0 && text.length > 0 && socket.connected === true){
         socket.send({"channel":selectedTab,"text":text});
         postbox.val("");
         id = $("section", $(tabId(selectedTab))).append(render(partial,{

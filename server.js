@@ -35,7 +35,9 @@ app.get("/", function(req,resp){
   resp.render('index.ejs',{
     title: 'IRC on the cloud',
     theme: 'aristo',
-    user: req.session.auth.user || {}
+    user: req.session.auth.user || {},
+    nick: config.irc.nick,
+    name: config.irc.name
   });
 }).get("/login", function(req,resp){
   req.authenticate(['twitter'], function(error, authenticated) {
@@ -155,6 +157,12 @@ ircClient.addListener('raw', function(message){
 mQueue.addListener('message', function(message){
   if(!!backlog[message.channel]){
     ircClient.say(message.channel, message.text);
+    backlog[message.channel]["messages"].push({
+      from: config.irc.nick, 
+      channel: message.channel, 
+      text: message.text, 
+      time: (new Date).toUTCString()
+    });
   }
 });
 

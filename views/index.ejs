@@ -7,6 +7,7 @@
 <script type="text/javascript" src="/js/jquery-ui.js"></script>
 -->
 <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+<script type="text/javascript">window.EYERC = {"nick":"<%=nick%>"};</script>
 <div id="main">
   <div id="tabs">
     <ul><li><a href="#server">Freenode</a></li></ul>
@@ -18,7 +19,7 @@
       logged in as <b><%= user.userName %></b>
       <a href="/logout">logout</a>
     <% }else{ %>
-      <a href="/login">login</a>
+      <a href="/login">login</a> to post
     <% } %>
   </div>
 </div>

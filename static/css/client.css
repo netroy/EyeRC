@@ -6,6 +6,7 @@ body,#tabs ul{background-color:#EFF0F0;}
 #tabs>div{position:relative;}
 
 section{overflow:auto;}
+#server{padding:0;}
 #server section p{margin:2px 10px;font-family:monospace;color:#444;}
 
 .channel h4{margin-right:180px;border:1px solid #DDD;background-color:#FFC;padding:10px;font-weight:bold;color:#555;text-shadow:0 1px 0 #FFF;margin-bottom:10px;line-height: 15pt;height: 40px;}
