@@ -40,14 +40,18 @@ app.get("/", function(req,resp){
     name: config.irc.name
   });
 }).get("/login", function(req,resp){
-  req.authenticate(['twitter'], function(error, authenticated) {
-    if(error){
-      resp.send(JSON.stringify(error));
-      resp.render('error.ejs');
-    }else if(authenticated){
-      resp.redirect("/");
-    }
-  });
+  try{
+    req.authenticate(['twitter'], function(error, authenticated) {
+      if(error){
+        resp.send(JSON.stringify(error));
+        resp.render('error.ejs');
+      }else if(authenticated){
+        resp.redirect("/");
+      }
+    });
+  }catch(e){
+    resp.render('error.ejs');
+  }
 }).get("/logout",function(req,resp){
   req.session.destroy();
   resp.redirect("/");
