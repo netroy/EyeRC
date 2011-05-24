@@ -4,12 +4,14 @@ $(function(){
   if(!console.log) console.log = function(){};
   var partial = "<p><u>{from}</u><span>{linkify(text)}</span><time data='{time}'>{pretty(time)}</time></p>";
   var socket = new io.Socket(location.hostname,{"port":location.port});
+  var server = $("#server section");
+  var postbox = $("#postbox");
 
   var entities = {"<":"&lt;",">":"&gt;",'&':'&amp;','"':'&quot;',"'": '&#32;'};
 
   function linkify(text){
     text = text.replace(/[&"'><]/g,function(match){return entities[match]});
-    text = text.replace(/((https?):\/\/([-\w\.]+)+(:\d+)?(\/([\w\/_\.\-#]*(\?\S+)?)?)?)/gm,'<a href="$1" target="_blank">$1</a>');
+    text = text.replace(/((https?):\/\/([-\w\.]+)+(:\d+)?(\/([\w\/_\.\-#\+]*(\?\S+)?)?)?)/gm,'<a href="$1" target="_blank">$1</a>');
     text = text.replace(/^\@?([\w]*):/,function(match){return (match==='http')?match:match.bold();});
     return text;
   }
@@ -23,7 +25,7 @@ $(function(){
   function rescale(){
     var h = $(window).height();
     $("div.ui-tabs-panel").height(h-120);
-    $("ol").height(h-130);
+    $("ol").height(h-115);
     $(".channel section").height(h-180);
     $("#server section").height(h-120);
   }
@@ -103,12 +105,7 @@ $(function(){
     }
 
     if(backlog['server'] instanceof Array && backlog['server'].length > 0){
-      var server = $("#server section");
-      for(msg in backlog['server']){
-        msg = backlog['server'][msg];
-        server.append("<p>"+msg+"<\/p>");
-        server[0].scrollTop = server[0].scrollHeight;
-      }
+      server.append("<h5>MOTD</h5><p class='motd'>" + backlog['server'].join("<br/>") + "</p>");
     }
 
     if(!!(tabCookie = document.cookie.match(/selectedTab=(#{1,2}[\w\.\-]+)/))){
@@ -163,7 +160,12 @@ $(function(){
         sidebar.append("<li><u>"+nick+"</u></li>");
       }
     }else if(m.motd){
-      $("#server section").append("<p>"+m.motd.replace(/[\r\n]+/,"<br/>")+"</p>");
+      if(server.find("p.motd").length === 0){
+        server.append("<h5>MOTD</h5><p class='motd'>"+m.motd.replace(/[\r\n]+/,"<br/>")+"</p>");
+      }else{
+        m.motd += "\n";
+        $("p.motd",server).append(m.motd.replace(/[\r\n]+/,"<br/>"));
+      }
     }
   }); 
   socket.on('disconnect', function(){
@@ -171,11 +173,14 @@ $(function(){
     setTimeout(socket.connect,10*1000);
   });
 
-  $("p, ol li", $("#tabs")).live("click",function(e){
-    console.log($(this).find("u").html());
+  server.find("h5").live('click',function(e){
+    server.find("p.motd").toggle();
   });
 
-  var postbox = $("#postbox");
+  $("p u, ol u", $("#tabs")).live("click",function(e){
+    postbox.focus().val($(e.target).html() + ": ");
+  });
+
   $(document).keydown(function(e) {
     if(e.ctrlKey && !!String.fromCharCode(e.keyCode).match(/[0-9]/)){
       var index = e.keyCode - '0'.charCodeAt(0);
@@ -197,4 +202,5 @@ $(function(){
     }
   });
 
+  // Tada ... Done
 });

@@ -15,8 +15,8 @@
   </div>
   <div id="post"><input type="text" id="postbox"/></div>
   <div id="info">
-    <% if(typeof user.userName === 'string'){ %>
-      logged in as <b><%= user.userName %></b>
+    <% if(typeof user.username === 'string'){ %>
+      logged in as <b><%= user.username %></b>
       <a href="/logout">logout</a>
     <% }else{ %>
       <a href="/login">login</a> to post
