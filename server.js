@@ -50,7 +50,7 @@ app.get("/", function(req,resp){
       }
     });
   }catch(e){
-    resp.render('error.ejs',{title:"Some error occured",error:JSON.stringify(e)});
+    resp.render('error.ejs',{title:"Some error occured",error:e.stack});
   }
 }).get("/logout",function(req,resp){
   req.session.destroy();
