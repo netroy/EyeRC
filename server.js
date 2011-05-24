@@ -44,13 +44,13 @@ app.get("/", function(req,resp){
     req.authenticate(['twitter'], function(error, authenticated) {
       if(error){
         resp.send(JSON.stringify(error));
-        resp.render('error.ejs');
+        resp.render('error.ejs',{title:"Some error occured",error:error});
       }else if(authenticated){
         resp.redirect("/");
       }
     });
   }catch(e){
-    resp.render('error.ejs');
+    resp.render('error.ejs',{title:"Some error occured",error:JSON.stringify(e)});
   }
 }).get("/logout",function(req,resp){
   req.session.destroy();
