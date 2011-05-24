@@ -57,7 +57,9 @@ $(function(){
       "note": sup
     };
   }, select:function(e,ui){
-    selectedTab = $(ui.tab).find("span").html();
+    var tab = $(ui.tab);
+    tab.removeClass("highlight");
+    selectedTab = tab.find("span").html();
     var section = $("section",ui.panel)[0];
     setTimeout(function(){
       section.scrollTop = section.scrollHeight;
@@ -72,7 +74,7 @@ $(function(){
   function addTab(name){
     var id = tabId(name);
     tabList.tabs("add", id, name);
-    id = $(id).html("<h4></h4><section></section><ol></ol>");
+    id = $(id).html("<h4></h4><section></section><ol><li class='search'><input /></li></ol>");
     rescale();
     return id;
   }
@@ -139,6 +141,9 @@ $(function(){
       id = $("section", id).append(render(partial,m));
       if(tabMap[m.channel]){
         tabMap[m.channel].note.html($("p",id).length);
+        if(m.channel !== selectedTab){
+          tabMap[m.channel].tab.addClass("highlight");
+        }
       }
     }else if(m.join || m.part){
       id = $(tabId(m.channel));
