@@ -64,25 +64,27 @@ if (!module.parent) {
 }
 
 var backlog = {};
-// Try to load from backlog if anything exists in the dump file
-try{
-  fs.readFile(__dirname + "/dump.json", function(err, data){
-    if(err) return;
-    data = data.toString();
-    if(data.length > 100) {
-      backlog = JSON.parse("("+data+")");
-    }
-  });
-}catch(e){}
 
 // Initialize the message queue for posting
 var mQueue = new events.EventEmitter;
 
 // Bind Socket.IO server to the http server
-var socket = io.listen(app);
+var socket = io.listen(app, {log:function(){}});
 socket.on('connection', function(client){ 
   console.log("connected");
-  client.send({backlog: backlog});
+//  client.send({backlog: backlog});
+  for(var channel in backlog){
+    if(channel === 'server'){
+      
+    }else{
+      ircClient.emit('topic', channel, backlog[channel]["topic"], config.irc.nick);
+      ircClient.emit('names', channel, backlog[channel]["names"]);
+      var messages = backlog[channel]["messages"];
+      messages.forEach(function(message){
+        ircClient.emit('message', message.from, message.channel, message.text, message.time);
+      });
+    }
+  }
   client.on('message', function(message){
     mQueue.emit('message',message);
   });
@@ -99,6 +101,7 @@ var ircClient = new irc.Client(config.irc.server, config.irc.nick, {
   password: config.irc.pass,
   autoRejoin: true
 });
+
 ircClient.addListener('registered', function(){
   console.log("IRC server '"+config.irc.server+"' connected");
   backlog["server"] = [];
@@ -115,7 +118,7 @@ ircClient.addListener('registered', function(){
 ircClient.addListener('motd', function(message){
   message.split(/[\r\n]+/).forEach(function(m){
     socket.broadcast({motd: m});
-    backlog["server"].push(m);    
+    backlog["server"].push(m);
   });
 });
 
@@ -141,14 +144,13 @@ ircClient.addListener('part', function(channel, nick){
   socket.broadcast({channel:channel, part:nick});
 });
 
-ircClient.addListener('message', function (from, channel, text) {
-  var now = new Date();
-  var packet = {from: from, channel: channel, text: text, time: now.toUTCString()};
-  if(!!backlog[channel] && channel.indexOf("#") === 0){
+ircClient.addListener('message', function (from, channel, text, time) {
+  var packet = {from: from, channel: channel, text: text, time: (time || (new Date()).toUTCString())};
+  if(!time && !!backlog[channel] && channel.indexOf("#") === 0){
     var clog = backlog[channel]["messages"];
     clog.push(packet);
     if(clog.length > config.MAX_LOG) clog.shift();    
-  }else console.log(packet);
+  }
   socket.broadcast({message:packet});
 });
 
@@ -157,9 +159,10 @@ ircClient.addListener('raw', function(message){
 });
 
 
+
 // For sending push to message queue
 mQueue.addListener('message', function(message){
-  if(!!backlog[message.channel]){
+  if(!!backlog[message.channel] && ircClient.conn.connected === true){
     ircClient.say(message.channel, message.text);
     backlog[message.channel]["messages"].push({
       from: config.irc.nick, 

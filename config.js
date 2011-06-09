@@ -4,10 +4,10 @@ var config = {
   },
   irc: {
     server: "irc.freenode.net",
-    channels: ["#nodester", "#Node.js", "##javascript", "#jquery", "#html5", "#css", "#nginx", "#redis", "#mongodb", "#couchdb", "#git"],
-    nick: "NetRoY",
-    name: "Aditya",
-    pass: "IAmAdi123",
+    channels: ["#nodester", "#Node.js", "##javascript", "#jquery", "#html5", "#css", "#nginx", "#redis", "#git"],
+    nick: "Badababuba",
+    name: "BadaBabuBa",
+    pass: null,
   },
   twitter: {
     key: "QwG0YGi02cJBl59Uv7w3jg",
