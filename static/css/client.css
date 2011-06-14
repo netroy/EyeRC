@@ -1,7 +1,9 @@
 body,#tabs ul{background-color:#EFF0F0;}
 @-webkit-keyframes fade {
   35%  { opacity: 1.0;}
-  50%  { opacity: 0.2;}
+  40%  { opacity: 0.3;}
+  50%  { opacity: 1.0;}
+  60%  { opacity: 0.3;}
   65%  { opacity: 1.0;}
 }
 
@@ -12,21 +14,20 @@ body,#tabs ul{background-color:#EFF0F0;}
 #tabs ul li:first-child a{color:#d42;padding:6px 10px 4px 10px;}
 #tabs ul span, #tabs ul sup{float:left;vertical-align:baseline;}
 #tabs ul span{color:#444;text-shadow: 0 1px 0 rgba(255,255,255,0.6);padding:6px 10px 4px 10px;}
-#tabs ul sup{border:1px solid #888;border-width:0 1px;background-color:rgba(0,0,0,0.3);color:#FFF;margin-right:4px;
-  text-shadow:0 1px 0 #000;font-size:11px;font-weight:bold;padding:8px 6px 6px 6px;;position:static;height:auto;}
+#tabs ul sup{
+  border:1px solid #888;border-width:0 1px;background-color:rgba(0,0,0,0.3);color:#FFF;margin-right:4px;
+  width: 18px;text-align: center;font-size:11px;font-weight:bold;padding:8px 6px 6px 6px;;position:static;height:auto;
+  box-shadow: 0 0 1px rgba(255,255,255,0.4) inset;text-shadow:0 1px 0 #000;
+}
 
-/*
-#tabs li.ui-tabs-selected sup{background:#FFF;border-color:#FFF;color:#000;text-shadow:none;}
-*/
 #tabs li.ui-tabs-selected span{padding-left:28px;padding-right:28px;}
 #tabs li.ui-tabs-selected sup{display:none;}
-
 #tabs .highlight sup{
-  background-color:rgba(255,100,0,0.4);
-  text-shadow:0 0 4px #000;
+  background-color:rgba(40,160,255,0.4);
+  text-shadow:0 1px 4px #000;
   font-weight:bold;
   -webkit-animation-name: fade;
-  -webkit-animation-duration: 2s;
+  -webkit-animation-duration: 3s;
   -webkit-animation-iteration-count: infinite;
 }
 

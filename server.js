@@ -39,7 +39,8 @@ app.get("/", function(req,resp){
     nick: config.irc.nick,
     name: config.irc.name
   });
-}).get("/login", function(req,resp){
+});
+app.get("/login", function(req,resp){
   try{
     req.authenticate(['twitter'], function(error, authenticated) {
       if(error){
@@ -52,7 +53,8 @@ app.get("/", function(req,resp){
   }catch(e){
     resp.render('error.ejs',{title:"Some error occured",error:e.stack});
   }
-}).get("/logout",function(req,resp){
+});
+app.get("/logout",function(req,resp){
   req.session.destroy();
   resp.redirect("/");
 });

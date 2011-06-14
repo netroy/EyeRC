@@ -21,14 +21,18 @@ $(function(){
   });}
 
   function hashroute(a,b,c){function e(d){d=location.hash;if(d!=c){for(b=0,c=d;(d=a[b++])&&!(d=d.exec(c));b++);a[b](d)}};e();setInterval(e,b||99)};
-  
-  function rescale(){
-    var h = $(window).height();
-    $("div.ui-tabs-panel").height(h-120);
-    $("ol").height(h-115);
-    $(".channel section").height(h-180);
-    $("#server section").height(h-120);
-  }
+ 
+  (function(){
+    function rescale(){
+      var h = $(window).height();
+      $("div.ui-tabs-panel").height(h-120);
+      $("ol").height(h-115);
+      $(".channel section").height(h-180);
+      $("#server section").height(h-120);
+    }
+    rescale();
+    $(window).resize(rescale);
+  })();
 
   function pretty(a){
     var a = ((new Date)-(new Date(a)))/1000;
@@ -37,14 +41,16 @@ $(function(){
     return (c===0 && a < 10)?"now":(a+" "+"sec0min0hour0day".split(0)[c]+(a>1?"s":"")+" ago");
   }
 
-  function prettyTime(){
-    $("time").each(function(){
-      $(this).html(pretty($(this).attr("data")));
-    });
-    setTimeout(prettyTime,30*1000);
-  }
+  (function(){
+    function prettyTime(){
+      $("time").each(function(){
+        $(this).html(pretty($(this).attr("data")));
+      });
+    };
+    setInterval(prettyTime,60*1000);
+  })();
 
-  var tabMap = {}, selectedTab = 0;
+  var tabMap = {}, selectedTab = 0, backlogged = false;
   var tabList = $("#tabs").tabs({'add':function(e,ui){
     if(ui.index === 0) return;
     var tab = $(ui.tab).addClass('channel');
@@ -56,9 +62,12 @@ $(function(){
       "panel": panel,
       "note": sup
     };
+    if(tab.find("span").html() === selectedTab){
+      $("#tabs").tabs('select',ui.index);
+    }
   }, select:function(e,ui){
     var tab = $(ui.tab);
-    tab.removeClass("highlight");
+    tab.removeClass("highlight").find("sup").html("0");
     selectedTab = tab.find("span").html();
     var section = $("section",ui.panel)[0];
     setTimeout(function(){
@@ -100,7 +109,7 @@ $(function(){
           sidebar.append("<li><u>"+nick+"</u></li>");
         }
         if(tabMap[name]){
-          tabMap[name].note.html($("p",log).length);
+//          tabMap[name].note.html($("p",log).length);
         }
         log[0].scrollTop = log[0].scrollHeight;
       }
@@ -116,32 +125,29 @@ $(function(){
         tabList.tabs('select',selectedTab.index);
       }
     }
-    rescale();
-    $(window).resize(rescale);
-    prettyTime();
   }
 
-/*
+
   hashroute([
     /^$/, function(){tabList.tabs('select',0);}
     , function(){tabList.tabs('select',0);}
   ]);
-*/
 
+  var note;
   socket.connect();
   socket.on('connect', function(){
     console.log("socket connected");
   });
+
   socket.on('message', function(m,id){
-    if(m.backlog){
-      draw(m.backlog);
-    }else if(m.message){
+    if(m.message){
       m = m.message;
       id = $(tabId(m.channel));
       id = $("section", id).append(render(partial,m));
       if(tabMap[m.channel]){
-        tabMap[m.channel].note.html($("p",id).length);
-        if(m.channel !== selectedTab){
+        note = tabMap[m.channel].note;
+        if(!backlogged && m.channel !== selectedTab){
+          note.html(parseInt(note.html())+1);
           tabMap[m.channel].tab.addClass("highlight");
         }
       }
