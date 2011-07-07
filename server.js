@@ -10,10 +10,6 @@ var    fs = require('fs'),
       app = express.createServer(),
    config = require("./config").config;
 
-   process.on('SIGINT', function () {
-     console.log('Got SIGINT.  Press Control-D to exit.');
-   });
-
 app.configure(function(){
   app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   app.use(express.static(__dirname + '/static'));
@@ -40,6 +36,7 @@ app.get("/", function(req,resp){
     name: config.irc.name
   });
 });
+
 app.get("/login", function(req,resp){
   try{
     req.authenticate(['twitter'], function(error, authenticated) {
@@ -54,6 +51,7 @@ app.get("/login", function(req,resp){
     resp.render('error.ejs',{title:"Some error occured",error:e.stack});
   }
 });
+
 app.get("/logout",function(req,resp){
   req.session.destroy();
   resp.redirect("/");
@@ -71,10 +69,11 @@ var backlog = {};
 var mQueue = new events.EventEmitter;
 
 // Bind Socket.IO server to the http server
-var socket = io.listen(app, {log:function(){}});
-socket.on('connection', function(client){ 
-  console.log("connected");
-//  client.send({backlog: backlog});
+var io = io.listen(app);
+io.set('log level', 0);
+io.sockets.on('connection', function(client){ 
+  //console.log("connected " + client.id);
+  //client.json.send({backlog: backlog});
   for(var channel in backlog){
     if(channel === 'server'){
       
@@ -91,7 +90,7 @@ socket.on('connection', function(client){
     mQueue.emit('message',message);
   });
   client.on('disconnect',function(){
-    console.log("disconnectd");
+    //console.log("client disconnected " + client.id);
   });
 });
 
@@ -110,7 +109,7 @@ ircClient.addListener('registered', function(){
   config.irc.channels.forEach(function(channel){
     (function(channel){
       ircClient.join(channel,function(nick){
-        console.log("Joined " + channel + " as " + nick);
+        //console.log("Joined " + channel + " as " + nick);
       });
     })(channel);  
     backlog[channel] = {"topic": "", "names": null, "messages": []};
@@ -119,7 +118,7 @@ ircClient.addListener('registered', function(){
 
 ircClient.addListener('motd', function(message){
   message.split(/[\r\n]+/).forEach(function(m){
-    socket.broadcast({motd: m});
+    io.sockets.json.send({motd: m});
     backlog["server"].push(m);
   });
 });
@@ -127,23 +126,23 @@ ircClient.addListener('motd', function(message){
 ircClient.addListener('names', function(channel, nicks){
   if(!!backlog[channel]){
     backlog[channel]["names"] = nicks;
-    socket.broadcast({channel:channel, names:nicks});
+    io.sockets.json.send({channel:channel, names:nicks});
   }else console.log(arguments);
 });
 
 ircClient.addListener('topic', function(channel, topic, nick){
   if(!!backlog[channel]){
     backlog[channel]["topic"] = topic;
-    socket.broadcast({channel:channel, topic:topic});
+    io.sockets.json.send({channel:channel, topic:topic});
   }else console.log(arguments);
 });
 
 ircClient.addListener('join', function(channel, nick){
-  socket.broadcast({channel:channel, join:nick});
+  io.sockets.json.send({channel:channel, join:nick});
 });
 
 ircClient.addListener('part', function(channel, nick){
-  socket.broadcast({channel:channel, part:nick});
+  io.sockets.json.send({channel:channel, part:nick});
 });
 
 ircClient.addListener('message', function (from, channel, text, time) {
@@ -153,7 +152,7 @@ ircClient.addListener('message', function (from, channel, text, time) {
     clog.push(packet);
     if(clog.length > config.MAX_LOG) clog.shift();    
   }
-  socket.broadcast({message:packet});
+  io.sockets.json.send({message:packet});
 });
 
 ircClient.addListener('raw', function(message){
@@ -175,7 +174,7 @@ mQueue.addListener('message', function(message){
   }
 });
 
-
+/*
 // Clean Up before Exit
 process.on('exit', function cleanUp() {
   // Try to dump JSON of the backlog
@@ -199,3 +198,4 @@ process.on('exit', function cleanUp() {
 process.on('SIGINT',function(){
   process.exit(0);
 });
+*/

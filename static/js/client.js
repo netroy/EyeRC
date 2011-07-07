@@ -3,7 +3,8 @@ $(function(){
   var console = window.console || {};
   if(!console.log) console.log = function(){};
   var partial = "<p><u>{from}</u><span>{linkify(text)}</span><time data='{time}'>{pretty(time)}</time></p>";
-  var socket = new io.Socket(location.hostname,{"port":location.port});
+  //var socket = new io.Socket(location.hostname,{"port":location.port});
+  var socket;
   var server = $("#server section");
   var postbox = $("#postbox");
 
@@ -134,12 +135,14 @@ $(function(){
   ]);
 
   var note;
-  socket.connect();
+  //socket.connect();
+  socket = io.connect();
   socket.on('connect', function(){
     console.log("socket connected");
   });
 
   socket.on('message', function(m,id){
+    console.log(m);
     if(m.message){
       m = m.message;
       id = $(tabId(m.channel));
