@@ -33,6 +33,7 @@ $(function(){
     }
     rescale();
     $(window).resize(rescale);
+    window.rescale = rescale;
   })();
 
   function pretty(a){
@@ -142,7 +143,7 @@ $(function(){
   });
 
   socket.on('message', function(m,id){
-    console.log(m);
+    //console.log(m);
     if(m.message){
       m = m.message;
       id = $(tabId(m.channel));
