@@ -70,19 +70,20 @@ var mQueue = new events.EventEmitter;
 
 // Bind Socket.IO server to the http server
 var io = io.listen(app);
-io.set('log level', 0);
+io.set('log level', 2);
 io.sockets.on('connection', function(client){ 
   //console.log("connected " + client.id);
   //client.json.send({backlog: backlog});
   for(var channel in backlog){
     if(channel === 'server'){
-      
+      backlog["server"].forEach(function(message){
+        client.json.send({'motd': message});
+      });
     }else{
-      ircClient.emit('topic', channel, backlog[channel]["topic"], config.irc.nick);
-      ircClient.emit('names', channel, backlog[channel]["names"]);
-      var messages = backlog[channel]["messages"];
-      messages.forEach(function(message){
-        ircClient.emit('message', message.from, message.channel, message.text, message.time);
+      client.json.send({'channel':channel, topic:backlog[channel]["topic"]});
+      client.json.send({'channel':channel, names:backlog[channel]["names"]});
+      backlog[channel]["messages"].forEach(function(message){
+        client.json.send({'message': message});
       });
     }
   }
@@ -102,6 +103,8 @@ var ircClient = new irc.Client(config.irc.server, config.irc.nick, {
   password: config.irc.pass,
   autoRejoin: true
 });
+
+console.info("Connecting to freenode");
 
 ircClient.addListener('registered', function(){
   console.log("IRC server '"+config.irc.server+"' connected");
