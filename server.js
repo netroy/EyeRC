@@ -76,17 +76,15 @@ io.sockets.on('connection', function(client){
   //client.json.send({backlog: backlog});
   for(var channel in backlog){
     if(channel === 'server'){
-      backlog["server"].forEach(function(message){
-        client.json.send({'motd': message});
-      });
+      client.json.send({'motd': backlog["server"]});
     }else{
       client.json.send({'channel':channel, topic:backlog[channel]["topic"]});
       client.json.send({'channel':channel, names:backlog[channel]["names"]});
-      backlog[channel]["messages"].forEach(function(message){
-        client.json.send({'message': message});
-      });
+      client.json.send({'message': backlog[channel]["messages"]});
     }
   }
+  client.json.send({'backlog': true});
+
   client.on('message', function(message){
     mQueue.emit('message',message);
   });
@@ -112,25 +110,25 @@ ircClient.addListener('registered', function(){
   config.irc.channels.forEach(function(channel){
     (function(channel){
       ircClient.join(channel,function(nick){
-        //console.log("Joined " + channel + " as " + nick);
+        console.info("Joined " + channel + " as " + nick);
       });
     })(channel);  
-    backlog[channel] = {"topic": "", "names": null, "messages": []};
+    backlog[channel] = {"topic": "", "names": [], "messages": []};
   });
 });
 
-ircClient.addListener('motd', function(message){
-  message.split(/[\r\n]+/).forEach(function(m){
-    io.sockets.json.send({motd: m});
-    backlog["server"].push(m);
-  });
+ircClient.addListener('motd', function(m){
+  m = m.split(/[\r\n]+/);
+  io.sockets.json.send({motd: m});
+  backlog["server"] = backlog["server"] || [];
+  Array.prototype.push.apply(backlog["server"],m);
 });
 
 ircClient.addListener('names', function(channel, nicks){
   if(!!backlog[channel]){
     backlog[channel]["names"] = nicks;
     io.sockets.json.send({channel:channel, names:nicks});
-  }else console.log(arguments);
+  }
 });
 
 ircClient.addListener('topic', function(channel, topic, nick){
@@ -141,11 +139,17 @@ ircClient.addListener('topic', function(channel, topic, nick){
 });
 
 ircClient.addListener('join', function(channel, nick){
-  io.sockets.json.send({channel:channel, join:nick});
+  if(!!backlog[channel]){
+    backlog[channel]["names"][nick] = '';
+    io.sockets.json.send({channel:channel, join:nick});
+  }
 });
 
 ircClient.addListener('part', function(channel, nick){
-  io.sockets.json.send({channel:channel, part:nick});
+  if(!!backlog[channel]){
+    delete backlog[channel]["names"][nick];
+    io.sockets.json.send({channel:channel, part:nick});
+  }
 });
 
 ircClient.addListener('message', function (from, channel, text, time) {
@@ -158,22 +162,19 @@ ircClient.addListener('message', function (from, channel, text, time) {
   io.sockets.json.send({message:packet});
 });
 
-ircClient.addListener('raw', function(message){
-  //console.log(JSON.stringify(message));
-});
-
-
-
 // For sending push to message queue
+var msgObject;
 mQueue.addListener('message', function(message){
   if(!!backlog[message.channel] && ircClient.conn.connected === true){
     ircClient.say(message.channel, message.text);
-    backlog[message.channel]["messages"].push({
+    msgObject = {
       from: config.irc.nick, 
       channel: message.channel, 
       text: message.text, 
       time: (new Date).toUTCString()
-    });
+    };
+    backlog[message.channel]["messages"].push(msgObject);
+    io.sockets.json.send({'echo':msgObject});
   }
 });
 
