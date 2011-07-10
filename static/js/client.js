@@ -114,6 +114,10 @@ $(function(){
           }
         }
       }
+    }else if(m.echo){
+      m = m.echo;
+      id = $(tabId(m.channel));
+      id = $("section", id).prepend(render(partial,m));
     }else if(m.backlog){
       if(!!(tabCookie = document.cookie.match(/selectedTab=(#{1,2}[\w\.\-]+)/))){
         selectedTab = tabMap[tabCookie[1]];
@@ -179,8 +183,8 @@ $(function(){
       }
     }else if(e.which === 13 && e.target.nodeName.toLowerCase() === 'input'){
       var text = postbox.val();
-      if(selectedTab !== 0 && text.length > 0 && socket.connected === true){
-        socket.send({"channel":selectedTab,"text":text});
+      if(selectedTab !== 0 && text.length > 0 && socket.socket.connected === true){
+        socket.emit('message', {"channel":selectedTab,"text":text});
         postbox.val("");
       }
     }
