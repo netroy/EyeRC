@@ -176,7 +176,7 @@ ircClient.addListener('message', function (from, channel, text, time) {
 });
 
 // For sending push to message queue
-var msgObject, clientCount = 0;
+var msgObject, clientCount = 0, awayTimer;
 mQueue.addListener('message', function(message){
   if(!!backlog[message.channel] && ircClient.conn.writable === true){
     ircClient.say(message.channel, message.text);
@@ -192,15 +192,21 @@ mQueue.addListener('message', function(message){
 });
 
 mQueue.addListener('connection', function(){
+  clearTimeout(awayTimer);
   if(ircClient.conn.writable !== true) return;
   if(++clientCount === 1){
-    ircClient.away();
+    awayTimer = setTimeout(function(){
+      ircClient.away();
+    },15000);
   }
 });
 mQueue.addListener('disconnect', function(){
+  clearTimeout(awayTimer);
   if(ircClient.conn.writable !== true) return;
   if(--clientCount < 1){
-    ircClient.away(config.irc.awayMsg);
+    awayTimer = setTimeout(function(){
+      ircClient.away(config.irc.awayMsg);
+    },15000);
   }
 });
 
