@@ -3,7 +3,7 @@ $(function(){
   var console = window.console || {};
   if(!console.log) console.log = function(){};
   var partial = "<p><u>{from}</u><time data='{time}'>{pretty(time)}</time><span>{linkify(text)}</span></p>";
-  //var socket = new io.Socket(location.hostname,{"port":location.port});
+
   var socket;
   var server = $("#server section");
   var postbox = $("#postbox");
