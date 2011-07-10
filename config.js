@@ -8,6 +8,7 @@ var config = {
     nick: "Badababuba",
     name: "BadaBabuBa",
     pass: null,
+    awayMsg: "gone away"
   },
   twitter: {
     key: "QwG0YGi02cJBl59Uv7w3jg",

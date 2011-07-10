@@ -71,9 +71,9 @@ var mQueue = new events.EventEmitter;
 // Bind Socket.IO server to the http server
 var io = io.listen(app);
 io.set('log level', 2);
-io.sockets.on('connection', function(client){ 
-  //console.log("connected " + client.id);
-  //client.json.send({backlog: backlog});
+io.sockets.on('connection', function(client){
+  mQueue.emit('connection', null);
+
   for(var channel in backlog){
     if(channel === 'server'){
       client.json.send({'motd': backlog["server"]});
@@ -83,17 +83,30 @@ io.sockets.on('connection', function(client){
       client.json.send({'message': backlog[channel]["messages"]});
     }
   }
+
   client.json.send({'backlog': true});
 
   client.on('message', function(message){
-    mQueue.emit('message',message);
+    mQueue.emit('message', message);
   });
+
   client.on('disconnect',function(){
-    //console.log("client disconnected " + client.id);
+    mQueue.emit('disconnect', null);
   });
 });
 
 // API: https://github.com/martynsmith/node-irc/blob/master/API.md
+irc.Client.prototype.away = function(message){
+  if(typeof message !== 'undefined'){
+    this.send('AWAY',message);
+    this.send('NICK', this.opt.nick+"|away");
+    console.info("Gone away");
+  }else{
+    this.conn.write("AWAY \r\n");
+    this.send('NICK', this.opt.nick);
+    console.info("Came back");
+  }
+}
 var ircClient = new irc.Client(config.irc.server, config.irc.nick, {
   channels: [],
   userName: config.irc.nick,
@@ -163,9 +176,9 @@ ircClient.addListener('message', function (from, channel, text, time) {
 });
 
 // For sending push to message queue
-var msgObject;
+var msgObject, clientCount = 0;
 mQueue.addListener('message', function(message){
-  if(!!backlog[message.channel] && ircClient.conn.connected === true){
+  if(!!backlog[message.channel] && ircClient.conn.writable === true){
     ircClient.say(message.channel, message.text);
     msgObject = {
       from: config.irc.nick, 
@@ -175,6 +188,19 @@ mQueue.addListener('message', function(message){
     };
     backlog[message.channel]["messages"].push(msgObject);
     io.sockets.json.send({'echo':msgObject});
+  }
+});
+
+mQueue.addListener('connection', function(){
+  if(ircClient.conn.writable !== true) return;
+  if(++clientCount === 1){
+    ircClient.away();
+  }
+});
+mQueue.addListener('disconnect', function(){
+  if(ircClient.conn.writable !== true) return;
+  if(--clientCount < 1){
+    ircClient.away(config.irc.awayMsg);
   }
 });
 
