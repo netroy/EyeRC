@@ -4,7 +4,7 @@ var config = {
   },
   irc: {
     server: "irc.freenode.net",
-    channels: ["#nodester", "#Node.js", "##javascript", "#jquery", "#html5", "#css", "#nginx", "#redis", "#git"],
+    channels: ["#Node.js", "##javascript", "#jquery", "#html5", "#css", "#nginx", "#redis", "#git"],
     nick: "Badababuba",
     name: "BadaBabuBa",
     pass: null,
