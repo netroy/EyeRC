@@ -2,12 +2,11 @@ $(function(){
   var $ = jQuery;
   var console = window.console || {};
   if(!console.log) console.log = function(){};
-  var partial = "<p><u>{from}</u><span>{linkify(text)}</span><time data='{time}'>{pretty(time)}</time></p>";
+  var partial = "<p><u>{from}</u><time data='{time}'>{pretty(time)}</time><span>{linkify(text)}</span></p>";
   //var socket = new io.Socket(location.hostname,{"port":location.port});
   var socket;
   var server = $("#server section");
   var postbox = $("#postbox");
-
   var entities = {"<":"&lt;",">":"&gt;",'&':'&amp;','"':'&quot;',"'": '&#32;'};
 
   function linkify(text){
@@ -18,22 +17,20 @@ $(function(){
   }
 
   function render(template,data){return template.replace(/{[\w\.\(\)]+}/g,function(match){
-    var token=match.replace(/[\{\}]/g,"");try{with(data){return eval(token);}}catch(e){return"";}
-  });}
-
-  function hashroute(a,b,c){function e(d){d=location.hash;if(d!=c){for(b=0,c=d;(d=a[b++])&&!(d=d.exec(c));b++);a[b](d)}};e();setInterval(e,b||99)};
- 
+    var token=match.replace(/[\{\}]/g,"");
+    try{with(data){return eval(token);}}catch(e){return"";}});
+  }
+  
+  function rescale(){
+    var h = $(window).height();
+    $("div.ui-tabs-panel").height(h-120);
+    $("ol").height(h-115);
+    $(".channel section").height(h-180);
+    $("#server section").height(h-120);
+  }
   (function(){
-    function rescale(){
-      var h = $(window).height();
-      $("div.ui-tabs-panel").height(h-120);
-      $("ol").height(h-115);
-      $(".channel section").height(h-180);
-      $("#server section").height(h-120);
-    }
     rescale();
     $(window).resize(rescale);
-    window.rescale = rescale;
   })();
 
   function pretty(a){
@@ -42,12 +39,12 @@ $(function(){
     a = ~~a;
     return (c===0 && a < 10)?"now":(a+" "+"sec0min0hour0day".split(0)[c]+(a>1?"s":"")+" ago");
   }
-
   (function(){
     function prettyTime(){
       $("time").each(function(){
         $(this).html(pretty($(this).attr("data")));
       });
+      $("section i").remove();
     };
     setInterval(prettyTime,60*1000);
   })();
@@ -57,12 +54,12 @@ $(function(){
     if(ui.index === 0) return;
     var tab = $(ui.tab).addClass('channel');
     var panel = $(ui.panel).addClass('channel');
-    var sup = tab.append("<sup>0<\/sup>").find("sup");
+    var note = tab.append("<sup>0<\/sup>").find("sup");
     tabMap[tab.find("span").html()] = {
       "index": ui.index,
       "tab": tab,
       "panel": panel,
-      "note": sup
+      "note": note
     };
     if(tab.find("span").html() === selectedTab){
       $("#tabs").tabs('select',ui.index);
@@ -71,10 +68,6 @@ $(function(){
     var tab = $(ui.tab);
     tab.removeClass("highlight").find("sup").html("0");
     selectedTab = tab.find("span").html();
-    var section = $("section",ui.panel)[0];
-    setTimeout(function(){
-      section.scrollTop = section.scrollHeight;
-    },100);
     document.cookie = "selectedTab="+selectedTab;
   }});
 
@@ -86,79 +79,53 @@ $(function(){
     var id = tabId(name);
     tabList.tabs("add", id, name);
     id = $(id).html("<h4></h4><section></section><ol><li class='search'><input /></li></ol>");
-    rescale();
     return id;
   }
 
-  function draw(backlog){
-    var channel, name, id, sidebar, log;
-    var msg, nick;
-
-    for(name in backlog){
-      if(name === 'server') continue;
-      channel = backlog[name];
-
-      if(backlog.hasOwnProperty(name) && typeof channel === 'object' && typeof channel.topic === 'string'){
-        id = $(addTab(name));
-        id.find("h4").html(linkify(channel.topic));
-        sidebar = id.find("ol");
-        log = id.find("section").empty();
-        for(msg in channel.messages){
-          msg = channel.messages[msg];
-          log.append(render(partial,msg));
-        }
-        for(nick in channel.names){
-          sidebar.append("<li><u>"+nick+"</u></li>");
-        }
-        if(tabMap[name]){
-//          tabMap[name].note.html($("p",log).length);
-        }
-        log[0].scrollTop = log[0].scrollHeight;
-      }
-    }
-
-    if(backlog['server'] instanceof Array && backlog['server'].length > 0){
-      server.append("<h5>MOTD</h5><p class='motd'>" + backlog['server'].join("<br/>") + "</p>");
-    }
-
-    if(!!(tabCookie = document.cookie.match(/selectedTab=(#{1,2}[\w\.\-]+)/))){
-      selectedTab = tabMap[tabCookie[1]];
-      if(!!selectedTab && !!selectedTab.index){
-        tabList.tabs('select',selectedTab.index);
-      }
-    }
-  }
-
-
+/*
+  function hashroute(a,b,c){function e(d){d=location.hash;if(d!=c){for(b=0,c=d;(d=a[b++])&&!(d=d.exec(c));b++);a[b](d)}};e();setInterval(e,b||99)};
   hashroute([
     /^$/, function(){tabList.tabs('select',0);}
     , function(){tabList.tabs('select',0);}
   ]);
+*/
 
   var note;
-  //socket.connect();
   socket = io.connect();
   socket.on('connect', function(){
     console.log("socket connected");
   });
 
   socket.on('message', function(m,id){
-    //console.log(m);
     if(m.message){
       m = m.message;
-      id = $(tabId(m.channel));
-      id = $("section", id).append(render(partial,m));
-      if(tabMap[m.channel]){
-        note = tabMap[m.channel].note;
-        if(!backlogged && m.channel !== selectedTab){
-          note.html(parseInt(note.html())+1);
-          tabMap[m.channel].tab.addClass("highlight");
+      if(!(m instanceof Array)){
+        m = [m];
+      };
+      for(var i=0,l=m.length,n;i<l;i++){
+        n = m[i];
+        id = $(tabId(n.channel));
+        id = $("section", id).prepend(render(partial,n));
+        if(tabMap[n.channel]){
+          note = tabMap[n.channel].note;
+          if(backlogged && n.channel !== selectedTab){
+            note.html(parseInt(note.html())+1);
+            tabMap[n.channel].tab.addClass("highlight");
+          }
         }
       }
+    }else if(m.backlog){
+      if(!!(tabCookie = document.cookie.match(/selectedTab=(#{1,2}[\w\.\-]+)/))){
+        selectedTab = tabMap[tabCookie[1]];
+        if(!!selectedTab && !!selectedTab.index){
+          tabList.tabs('select',selectedTab.index);
+        }
+      }
+      backlogged = true;
     }else if(m.join || m.part){
       id = $(tabId(m.channel));
       m = (m.join)?m.join+" joined":m.part+" left";
-      $("section", id).append("<i>"+(m)+" the room</i>");
+      $("section", id).prepend("<i>"+(m)+" the room</i>");
     }else if(m.topic){
       id = $(tabId(m.channel));
       if(id.length === 0){
@@ -174,13 +141,15 @@ $(function(){
       for(nick in m.names){
         sidebar.append("<li><u>"+nick+"</u></li>");
       }
+      rescale();
     }else if(m.motd){
-      if(server.find("p.motd").length === 0){
-        server.append("<h5>MOTD</h5><p class='motd'>"+m.motd.replace(/[\r\n]+/,"<br/>")+"</p>");
-      }else{
-        m.motd += "\n";
-        $("p.motd",server).append(m.motd.replace(/[\r\n]+/,"<br/>"));
+      if(m.motd instanceof Array){
+        m.motd = m.motd.join("<br/>");
       }
+      if(server.find("p.motd").length === 0){
+        server.append("<h5>MOTD</h5><p class='motd'></p>");
+      }
+      $("p.motd",server).append(m.motd.replace(/[\r\n]+/,"<br/>")+"<br/>");
     }
   }); 
   socket.on('disconnect', function(){
@@ -197,22 +166,22 @@ $(function(){
   });
 
   $(document).keydown(function(e) {
-    if(e.ctrlKey && !!String.fromCharCode(e.keyCode).match(/[0-9]/)){
-      var index = e.keyCode - '0'.charCodeAt(0);
-      var tabs = $("#tabs li");
-      if(index >= tabs.length) return;
-      tabList.tabs('select', index);
+    if(e.ctrlKey){
+      if(!!String.fromCharCode(e.keyCode).match(/[0-9]/)){
+        var index = e.keyCode - '0'.charCodeAt(0);
+        var tabs = $("#tabs li");
+        if(index >= tabs.length) return;
+        tabList.tabs('select', index);
+      }else if(e.keyCode == 37){
+        // Move to last tab
+      }else if(e.keyCode == 39){
+        // Move to next tab
+      }
     }else if(e.which === 13 && e.target.nodeName.toLowerCase() === 'input'){
       var text = postbox.val();
       if(selectedTab !== 0 && text.length > 0 && socket.connected === true){
         socket.send({"channel":selectedTab,"text":text});
         postbox.val("");
-        id = $("section", $(tabId(selectedTab))).append(render(partial,{
-          from: EYERC.nick, 
-          channel: selectedTab, 
-          text: text, 
-          time: (new Date).toUTCString()
-        }));
       }
     }
   });
