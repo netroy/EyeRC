@@ -45,7 +45,7 @@ section{overflow:auto;}
 .channel h4{border:1px solid #DDD;background-color:#FFC;padding:10px;font-weight:bold;color:#555;text-shadow:0 1px 0 #FFF;
   margin-bottom:10px;line-height: 15pt;height: 40px;}
 
-.channel h4, .channel section{margin-right:170px;}
+.channel h4, .channel section{margin-right:180px;}
 .channel p{font-family: georgia;font-size: 12px;line-height: 20pt;padding: 2px 5px;margin: 0;
   background-color:#FFF; border-bottom:1px solid #E0E2E9;}
 .channel time{width: 80px;display: inline-block;float:right;text-align: right;color:#888;}
