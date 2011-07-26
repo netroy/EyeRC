@@ -59,8 +59,8 @@ app.get("/logout",function(req,resp){
 
 // Start listening
 if (!module.parent) {
-  app.listen(config.http.port);
-  console.log("server started at http://127.0.0.1:10023/");
+  app.listen(process.env['app_port'] || config.http.port);
+  console.info("server started at http://localhost:%d/",app.address().port);
 }
 
 var backlog = {};
