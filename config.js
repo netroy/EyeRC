@@ -1,6 +1,6 @@
 var config = {
   http: {
-    port: 11065
+    port: 11080
   },
   irc: {
     server: "irc.freenode.net",
