@@ -11,8 +11,10 @@ var    fs = require('fs'),
    config = require("./config").config;
 
 app.configure(function(){
-  app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   app.use(express.static(__dirname + '/static'));
+  app.set('views', __dirname + '/views');
+  app.set('view engine', 'ejs');
+  app.use(express.bodyParser());
   app.use(connect.cookieParser());
   app.use(connect.session({ secret: 'fhwoerjhcuenacjes', cookie: {maxAge: 60000} }));
   app.use(auth([
@@ -24,6 +26,15 @@ app.configure(function(){
   ]));
   app.use(connect.favicon());
   app.use(app.router);
+});
+
+app.configure('development', function(){
+  app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
+  app.use(express.methodOverride());
+});
+
+app.configure('production', function(){
+  app.use(express.errorHandler()); 
 });
 
 // Bind the routes
