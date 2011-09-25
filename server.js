@@ -16,7 +16,8 @@ app.configure(function(){
   app.set('view engine', 'ejs');
   app.use(express.bodyParser());
   app.use(connect.cookieParser());
-  app.use(connect.session({ secret: 'fhwoerjhcuenacjes', cookie: {maxAge: 60000} }));
+//  app.use(connect.session({ secret: 'fhwoerjhcuenacjes', cookie: {maxAge: 60000} }));
+/*
   app.use(auth([
     auth.Twitter({
       callback: "http://127.0.0.1:"+config.http.port+"/login",
@@ -24,6 +25,7 @@ app.configure(function(){
       consumerSecret: config.twitter.secret
     })
   ]));
+*/
   app.use(connect.favicon());
   app.use(app.router);
 });
@@ -48,6 +50,7 @@ app.get("/", function(req,resp){
   });
 });
 
+/*
 app.get("/login", function(req,resp){
   try{
     req.authenticate(['twitter'], function(error, authenticated) {
@@ -67,6 +70,7 @@ app.get("/logout",function(req,resp){
   req.session.destroy();
   resp.redirect("/");
 });
+*/
 
 // Start listening
 if (!module.parent) {
