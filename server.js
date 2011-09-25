@@ -6,7 +6,6 @@ var    fs = require('fs'),
   express = require('express'),
   connect = require('connect'),
    events = require('events'),
-     auth = require('connect-auth'),
       app = express.createServer(),
    config = require("./config").config;
 
@@ -16,16 +15,6 @@ app.configure(function(){
   app.set('view engine', 'ejs');
   app.use(express.bodyParser());
   app.use(connect.cookieParser());
-//  app.use(connect.session({ secret: 'fhwoerjhcuenacjes', cookie: {maxAge: 60000} }));
-/*
-  app.use(auth([
-    auth.Twitter({
-      callback: "http://127.0.0.1:"+config.http.port+"/login",
-      consumerKey: config.twitter.key,
-      consumerSecret: config.twitter.secret
-    })
-  ]));
-*/
   app.use(connect.favicon());
   app.use(app.router);
 });
@@ -44,36 +33,14 @@ app.get("/", function(req,resp){
   resp.render('index.ejs',{
     title: 'IRC on the cloud',
     theme: 'aristo',
-    user: req.session.auth.user || {},
     nick: config.irc.nick,
     name: config.irc.name
   });
 });
 
-/*
-app.get("/login", function(req,resp){
-  try{
-    req.authenticate(['twitter'], function(error, authenticated) {
-      if(error){
-        resp.send(JSON.stringify(error));
-        resp.render('error.ejs',{title:"Some error occured",error:error});
-      }else if(authenticated){
-        resp.redirect("/");
-      }
-    });
-  }catch(e){
-    resp.render('error.ejs',{title:"Some error occured",error:e.stack});
-  }
-});
-
-app.get("/logout",function(req,resp){
-  req.session.destroy();
-  resp.redirect("/");
-});
-*/
-
 // Start listening
 if (!module.parent) {
+  io = io.listen(app);
   app.listen(process.env['app_port'] || config.http.port);
   console.info("server started at http://localhost:%d/",app.address().port);
 }
@@ -84,7 +51,6 @@ var backlog = {};
 var mQueue = new events.EventEmitter;
 
 // Bind Socket.IO server to the http server
-var io = io.listen(app);
 io.set('log level', 2);
 io.sockets.on('connection', function(client){
   mQueue.emit('connection', null);
@@ -122,6 +88,9 @@ irc.Client.prototype.away = function(message){
     console.info("Came back");
   }
 }
+
+return;
+
 var ircClient = new irc.Client(config.irc.server, config.irc.nick, {
   channels: [],
   userName: config.irc.nick,
@@ -224,29 +193,3 @@ mQueue.addListener('disconnect', function(){
     },15000);
   }
 });
-
-/*
-// Clean Up before Exit
-process.on('exit', function cleanUp() {
-  // Try to dump JSON of the backlog
-  fs.writeFile(__dirname + "/dump.json", JSON.stringify(backlog), function(err){
-    if(!err) console.log("Failed to dump the Back Log");
-  });
-
-  console.log("\n\nCleaning up before quiting");
-  
-  // Disconnect from all all channels & then close the connection
-  config.irc.channels.forEach(function(channel){
-    (function(channel){
-      ircClient.part(channel,function(nick){
-        console.log("Left " + channel);
-      });
-    })(channel);
-  });
-  ircClient.disconnect("Shutting down the client");
-});
-
-process.on('SIGINT',function(){
-  process.exit(0);
-});
-*/
