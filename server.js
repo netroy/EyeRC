@@ -89,8 +89,6 @@ irc.Client.prototype.away = function(message){
   }
 }
 
-return;
-
 var ircClient = new irc.Client(config.irc.server, config.irc.nick, {
   channels: [],
   userName: config.irc.nick,
