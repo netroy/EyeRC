@@ -1,4 +1,3 @@
-"use strict";
 // Imports
 var    fs = require('fs'),
        io = require("socket.io"),
@@ -20,12 +19,12 @@ app.configure(function(){
 });
 
 app.configure('development', function(){
-  app.use(express.errorHandler({ dumpExceptions: true, showStack: true })); 
+  app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
   app.use(express.methodOverride());
 });
 
 app.configure('production', function(){
-  app.use(express.errorHandler()); 
+  app.use(express.errorHandler());
 });
 
 // Bind the routes
@@ -35,6 +34,12 @@ app.get("/", function(req,resp){
     theme: 'aristo',
     nick: config.irc.nick,
     name: config.irc.name
+  });
+});
+
+app.get("/new", function(req, resp) {
+  resp.render('newui.ejs', {
+    "title": "New UI"
   });
 });
 
@@ -48,7 +53,7 @@ if (!module.parent) {
 var backlog = {};
 
 // Initialize the message queue for posting
-var mQueue = new events.EventEmitter;
+var mQueue = new events.EventEmitter();
 
 // Bind Socket.IO server to the http server
 io.set('log level', 2);
@@ -87,9 +92,7 @@ irc.Client.prototype.away = function(message){
     this.send('NICK', this.opt.nick);
     console.info("Came back");
   }
-}
-
-return;
+};
 
 var ircClient = new irc.Client(config.irc.server, config.irc.nick, {
   channels: [],
@@ -109,7 +112,7 @@ ircClient.addListener('registered', function(){
       ircClient.join(channel,function(nick){
         console.info("Joined " + channel + " as " + nick);
       });
-    })(channel);  
+    })(channel);
     backlog[channel] = {"topic": "", "names": [], "messages": []};
   });
 });
@@ -154,7 +157,7 @@ ircClient.addListener('message', function (from, channel, text, time) {
   if(!time && !!backlog[channel] && channel.indexOf("#") === 0){
     var clog = backlog[channel]["messages"];
     clog.push(packet);
-    if(clog.length > config.MAX_LOG) clog.shift();    
+    if(clog.length > config.MAX_LOG) clog.shift();
   }
   io.sockets.json.send({message:packet});
 });
@@ -165,10 +168,10 @@ mQueue.addListener('message', function(message){
   if(!!backlog[message.channel] && ircClient.conn.writable === true){
     ircClient.say(message.channel, message.text);
     msgObject = {
-      from: config.irc.nick, 
-      channel: message.channel, 
-      text: message.text, 
-      time: (new Date).toUTCString()
+      from: config.irc.nick,
+      channel: message.channel,
+      text: message.text,
+      time: (new Date()).toUTCString()
     };
     backlog[message.channel]["messages"].push(msgObject);
     io.sockets.json.send({'echo':msgObject});
