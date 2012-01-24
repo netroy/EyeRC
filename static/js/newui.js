@@ -16,6 +16,21 @@
     });
   }
 
+  function pretty(a, b, c){
+    a = ((new Date())-(new Date(a)))/1000;
+    for(b=[60,60,24],c=0;a>b[c];a/=b[c++]);
+    a = ~~a;
+    return (c===0 && a < 10)?"now":(a+" "+"sec0min0hour0day".split(0)[c]+(a>1?"s":"")+" ago");
+  }
+
+  function prettyTime(){
+    $("time").each(function(){
+      $(this).html(pretty($(this).attr("data")));
+    });
+    $("section i").remove();
+  }
+
+  setInterval(prettyTime,60*1000);
 
   var entities = {"<":"&lt;",">":"&gt;",'&':'&amp;','"':'&quot;',"'": '&#32;'};
   function linkify(text) {
@@ -63,6 +78,7 @@
         channel.unread = 0;
         title.html(channel.topic);
         $("div.log", panel).replaceWith(channel.messages);
+        prettyTime();
         $("ol.users", panel).replaceWith(channel.users);
         currentChannel = name;
         localStorage.setItem("currentChannel", name);
