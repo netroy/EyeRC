@@ -39,7 +39,8 @@ app.get("/", function(req,resp){
 
 app.get("/new", function(req, resp) {
   resp.render('newui.ejs', {
-    "title": "New UI"
+    "title": "IRC on the cloud",
+    "nick": config.irc.nick
   });
 });
 
