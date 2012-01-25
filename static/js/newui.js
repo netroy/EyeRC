@@ -60,7 +60,6 @@
       channel.messages = $("<div class='log'></div>");
       channel.users = $("<ol class='users'></ol>");
       channel.tab = newTab;
-      channel.messages.niceScroll();
 
       if(name === currentChannel) {
         channel.tab.trigger("click");
@@ -80,6 +79,7 @@
         channel.unread = 0;
         title.html(linkify(channel.topic));
         $("div.log", panel).replaceWith(channel.messages);
+        channel.messages.niceScroll();
         prettyTime();
         $("ol.users", panel).replaceWith(channel.users);
         currentChannel = name;
