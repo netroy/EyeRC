@@ -60,6 +60,7 @@
       channel.messages = $("<div class='log'></div>");
       channel.users = $("<ol class='users'></ol>");
       channel.tab = newTab;
+      channel.messages.niceScroll();
 
       if(name === currentChannel) {
         channel.tab.trigger("click");
