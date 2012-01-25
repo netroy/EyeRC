@@ -34,6 +34,7 @@
 
   var entities = {"<":"&lt;",">":"&gt;",'&':'&amp;','"':'&quot;',"'": '&#32;'};
   function linkify(text) {
+    if(!text) return '';
     text = text.replace(/[&"'><]/g,function(match){
       return entities[match];
     });
@@ -76,7 +77,7 @@
         var name = node.attr("rel");
         var channel = channelMap[name];
         channel.unread = 0;
-        title.html(channel.topic);
+        title.html(linkify(channel.topic));
         $("div.log", panel).replaceWith(channel.messages);
         prettyTime();
         $("ol.users", panel).replaceWith(channel.users);
@@ -86,7 +87,8 @@
     });
   }
 
-  var partial = "<p><u>{{from}}</u><time data='{{time}}'></time><span>{{text}}</span></p>";
+  var partial = "<p><u>{{from}}</u><time data='{{time}}'>{{ftime}}</time><span>{{text}}</span></p>";
+  var userNick = window.EYERC.nick.toLowerCase();
   function initWSConnection() {
     socket = io.connect();
     socket.on('connect', connected);
@@ -96,6 +98,9 @@
         channel = getChannel(msg.channel);
         if(msg.topic) {
           channel.topic = msg.topic;
+          if(currentChannel === msg.channel) {
+            title.html(linkify(msg.topic));
+          }
         }
 
         if(msg.names) {
@@ -112,10 +117,11 @@
           msg = [msg];
         }
 
-        for(var i = 0, len = msg.length, m; i < len; i++){
+        for(var i = 0, len = msg.length, m; i < len; i++) {
           m = msg[i];
           channel = getChannel(m.channel);
           m.text = linkify(m.text);
+          m.ftime = pretty(m.time);
           channel.messages.prepend(render(partial,m));
           if(currentChannel !== channel.name) {
             channel.unread++;
@@ -125,6 +131,9 @@
               sup.html(channel.unread);
             } else {
               tab.append("<sup>"+channel.unread+"</sup");
+            }
+            if(!!m.text.toLowerCase().match(userNick)) {
+              tab.addClass("highlight");
             }
           }
         }

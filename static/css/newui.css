@@ -1,4 +1,4 @@
-body {
+body, input, select, button, textarea {
   font-family: "Ubuntu", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 12px;
   font-weight: normal;
@@ -8,37 +8,89 @@ body {
 @-webkit-keyframes fade {
   35%  { opacity: 1.0;} 40%  { opacity: 0.1;} 50%  { opacity: 1.0;} 60%  { opacity: 0.1;} 65%  { opacity: 1.0;}
 }
+
 @-moz-keyframes fade {
   35%  { opacity: 1.0;} 40%  { opacity: 0.1;} 50%  { opacity: 1.0;} 60%  { opacity: 0.1;} 65%  { opacity: 1.0;}
 }
 
-header, footer {
-  position: fixed;
-  left: 0;
-  right: 0;
-  padding: 6px 20px;
+header {
+  padding: 2px 10px;
   background-color: #444;
   color: #fff;
   background-image: -webkit-linear-gradient(top, #555, #444);
   border: 0 solid rgba(0,0,0,0.25);
-}
-
-header {
-  top: 0px;
-  height: 20px;
+  position: relative;
+  height: 30px;
   border-bottom-width: 1px;
-  text-shadow: 0 1px 1px rgba(0,0,0,1);
+  text-shadow: 0 1px 1px #000;
 }
 
-footer {
-  bottom: 0px;
-  border-top-width: 1px;
-  text-shadow: 0 -1px 1px rgba(0,0,0,1);
+header .title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: absolute;
+  left: 35px;
+  right: 100px;
+  min-height: 18px;
+  border: 0px solid #666;
+  padding: 6px 10px;
+  border-width: 0 1px;
+  box-shadow: 5px 0 10px 3px rgba(0,0,0,0.1), -5px 0 10px 3px rgba(0,0,0,0.1);
+  background-color: rgba(30,20,0,0.2);
+}
+
+header a {
+  color: #6cf;
+  text-decoration: none;
+  text-shadow: none;
+}
+
+header a:hover {
+  text-shadow: 0 1px 3px #000;
+  text-decoration: underline;
+}
+
+header .menu {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  background: url(/images/settings.png) center center no-repeat;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  -webkit-transition: border-color 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+header .menu:hover {
+  border-color: #888;
+  background-color: rgba(200,200,200,0.2);
+}
+
+header .loginButton {
+  position: absolute;
+  top: 4px;
+  right: 10px;
+  width: 80px;
+  height: 27px;
+  border: 1px solid #343434;
+  text-align: center;
+  border-radius: 20px;
+  line-height: 1em;
+  color: #fff;
+  text-shadow: 0px 1px 2px #210;
+  background-color: #2B8ACF;
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#43a4ef), to(#1773b4));
+  background-image: -webkit-linear-gradient(top, #43a4ef, #1773b4);
+  cursor: pointer;
+  display: inline-block;
 }
 
 #main {
   position: fixed;
-  top: 30px;
+  top: 35px;
   bottom: 0;
   left: 0;
   right: 0;
