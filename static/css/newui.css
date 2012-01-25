@@ -303,3 +303,25 @@ ol.users li u{
   border: 1px solid rgba(0,0,0,0.3);
   pointer: cursor;
 }
+
+
+
+/**
+ * Mobile
+ */
+@media screen and (max-width: 1040px) {
+  ol.users {
+    display: none;
+  }
+  div.log {
+    right: 5px;
+    left: 185px;
+  }
+  #SideBar {
+    width: 180px;
+  }
+  #Panel {
+    margin-left: 185px;
+  }
+
+}
