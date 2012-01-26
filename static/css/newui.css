@@ -37,19 +37,21 @@ header .title {
   position: absolute;
   left: 35px;
   right: 100px;
-  min-height: 18px;
+  height: 20px;
+  min-height: 20px;
   border: 0px solid #666;
   padding: 6px 10px;
   border-width: 0 1px;
   box-shadow: 5px 0 10px 3px rgba(0,0,0,0.1), -5px 0 10px 3px rgba(0,0,0,0.1);
   background-color: rgba(30,20,0,0.2);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0);
 }
 
 header .title:hover {
-  text-overflow: none;
   white-space: normal;
+  height: auto;
   border-bottom-width: 1px;
-  box-shadow: 0 1px 10px 4px rgba(0,0,0,0.5);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.5);
 }
 
 header a {
