@@ -13,11 +13,16 @@ body, input, select, button, textarea {
   35%  { opacity: 1.0;} 40%  { opacity: 0.1;} 50%  { opacity: 1.0;} 60%  { opacity: 0.1;} 65%  { opacity: 1.0;}
 }
 
+header, header .title:hover {
+  background-image: -webkit-linear-gradient(top, #555, #444);
+  background-image: -moz-linear-gradient(top, #555, #444);
+  background-image: -o-linear-gradient(top, #555, #444);
+}
+
 header {
   padding: 2px 10px;
   background-color: #444;
   color: #fff;
-  background-image: -webkit-linear-gradient(top, #555, #444);
   border: 0 solid rgba(0,0,0,0.25);
   position: relative;
   height: 30px;
@@ -40,6 +45,13 @@ header .title {
   background-color: rgba(30,20,0,0.2);
 }
 
+header .title:hover {
+  text-overflow: none;
+  white-space: normal;
+  border-bottom-width: 1px;
+  box-shadow: 0 1px 10px 4px rgba(0,0,0,0.5);
+}
+
 header a {
   color: #6cf;
   text-decoration: none;
@@ -55,13 +67,15 @@ header .menu {
   position: absolute;
   top: 2px;
   left: 2px;
-  background: url(/images/settings.png) center center no-repeat;
+  background: url('/images/settings.png') center center no-repeat;
   width: 28px;
   height: 28px;
   border: 1px solid transparent;
   border-radius: 4px;
   cursor: pointer;
   -webkit-transition: border-color 0.3s ease-in-out, background-color 0.3s ease-in-out;
+  -moz-transition: border-color 0.3s ease-in-out, background-color 0.3s ease-in-out;
+  -o-transition: border-color 0.3s ease-in-out, background-color 0.3s ease-in-out;
 }
 
 header .menu:hover {
@@ -84,6 +98,8 @@ header .loginButton {
   background-color: #2B8ACF;
   background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#43a4ef), to(#1773b4));
   background-image: -webkit-linear-gradient(top, #43a4ef, #1773b4);
+  background-image: -moz-linear-gradient(top, #43a4ef, #1773b4);
+  background-image: -o-linear-gradient(top, #43a4ef, #1773b4);
   cursor: pointer;
   display: inline-block;
 }
@@ -125,8 +141,9 @@ ul.server li {
   border-width: 1px 0 0;
   padding: 0 30px;
   cursor: pointer;
-  -moz-transition: all 0.1s ease-in-out;
   -webkit-transition: all 0.1s ease-in-out;
+  -moz-transition: all 0.1s ease-in-out;
+  -o-transition: all 0.1s ease-in-out;
   position: relative;
 }
 
