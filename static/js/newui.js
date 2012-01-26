@@ -2,7 +2,8 @@
 
   "use strict";
 
-  var socket, sidebar, panel, title, channelMap = {}, currentChannel;
+  var win, doc;
+  var socket, sidebar, sidebarLinks, panel, title, channelMap = {}, currentChannel;
   var console = window.console || {log:function(){}};
 
   function render(template, data) {
@@ -30,7 +31,7 @@
     $("section i").remove();
   }
 
-  setInterval(prettyTime,60*1000);
+  setInterval(prettyTime, 60*1000);
 
   var entities = {"<":"&lt;",">":"&gt;",'&':'&amp;','"':'&quot;',"'": '&#32;'};
   function linkify(text) {
@@ -68,24 +69,33 @@
     return channelMap[name];
   }
 
-  function initChannelMenu() {
-    sidebar.delegate("li", "click", function(e) {
-      var node = $(e.currentTarget);
-      if(!node.hasClass("console") && !node.hasClass("selected")) {
-        node.parent("ul.server").find("li.selected").removeClass("selected");
-        node.addClass("selected").removeClass("highlight").find("sup").remove();
-        var name = node.attr("rel");
-        var channel = channelMap[name];
-        channel.unread = 0;
-        title.html(linkify(channel.topic));
-        $("div.log", panel).replaceWith(channel.messages);
-        channel.messages.niceScroll();
-        prettyTime();
-        $("ol.users", panel).replaceWith(channel.users);
-        currentChannel = name;
-        localStorage.setItem("currentChannel", name);
-      }
-    });
+  function selectChannel(e) {
+    var node;
+    if(e instanceof $.Event) {
+      node = $(e.currentTarget);
+    } else if (typeof e === "number"){
+      node = sidebarLinks[e];
+    }
+
+    if(node === undefined) {
+      return;
+    }
+
+    if(!node.hasClass("console") && !node.hasClass("selected")) {
+      node.parent("ul.server").find("li.selected").removeClass("selected");
+      node.addClass("selected").removeClass("highlight").find("sup").remove();
+
+      var name = node.attr("rel");
+      var channel = channelMap[name];
+      channel.unread = 0;
+      title.html(linkify(channel.topic));
+      $("div.log", panel).replaceWith(channel.messages);
+      prettyTime();
+
+      $("ol.users", panel).replaceWith(channel.users);
+      currentChannel = name;
+      localStorage.setItem("currentChannel", name);
+    }
   }
 
   var partial = "<p><u>{{from}}</u><time data='{{time}}'>{{ftime}}</time><span>{{text}}</span></p>";
@@ -140,18 +150,72 @@
         }
       } else if(msg.join || msg.part) {
         
+      } else if(msg.echo) {
+        msg = msg.echo;
+        channel = getChannel(msg.channel);
+        msg.text = linkify(msg.text);
+        msg.ftime = pretty(msg.time);
+        channel.messages.prepend(render(partial, msg));
+      }
+    });
+  }
+
+  function bindKeys() {
+    doc.keydown(function(e) {
+      if(e.ctrlKey) {
+        if(!!String.fromCharCode(e.keyCode).match(/[0-9]/)) {
+          // Ctrl+0-9 -> select channel
+          selectChannel(e.keyCode - 48);
+          e.preventDefault();
+        } else if(e.keyCode == 37) {
+          // Move to last tab
+        } else if(e.keyCode == 39) {
+          // Move to next tab
+        }
+      }
+    });
+
+    var prompt = $("#prompt");
+    var promptActions = {
+      9: function handleTab() {
+        console.log("tabbed");
+      },
+      13: function sendMessage() {
+        var text = prompt.val();
+        if(prompt.val().length > 0 && socket.socket.connected === true) {
+          socket.emit('message', {
+            "channel": currentChannel,
+            "text": text
+          });
+          prompt.val("");
+        }
+      }
+    };
+
+    prompt.keydown(function(e) {
+      var action = promptActions[e.keyCode];
+      if(typeof action === "function") {
+        action();
+        e.preventDefault();
       }
     });
   }
 
   function init() {
 
+    win = $(window);
+    doc = $(document);
+
     sidebar = $("#SideBar");
+    sidebarLinks = $("#SideBar li:not(.console)");
     panel = $("#Panel");
     title = $("header .title");
 
+    bindKeys();
+
     currentChannel = localStorage.getItem("currentChannel");
-    initChannelMenu();
+
+    sidebar.delegate("li", "click", selectChannel);
 
     initWSConnection();
   }
