@@ -84,6 +84,6 @@ if (!module.parent) {
 var backlog = {};
 var io = require("socket.io");
 io = io.listen(app);
-io.set('log level', 2);
+io.set('log level', 1);
 var ircClient = require("./lib/ircClient").init(ircConfig, io, backlog);
 var mQueue = require("./lib/messageQueue").init(ircConfig, io, backlog, ircClient);
