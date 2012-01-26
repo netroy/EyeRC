@@ -103,60 +103,62 @@
   function initWSConnection() {
     socket = io.connect();
     socket.on('connect', connected);
-    socket.on('message', function(msg) {
-      var channel;
-      if(msg.channel) {
-        channel = getChannel(msg.channel);
-        if(msg.topic) {
-          channel.topic = msg.topic;
-          if(currentChannel === msg.channel) {
-            title.html(linkify(msg.topic));
-          }
-        }
 
-        if(msg.names) {
-          channel.names = msg.names;
-          var users = channel.users;
-          users.empty();
-          for(var nick in msg.names){
-            users.append("<li><u>"+nick+"</u></li>");
-          }
-        }
-      } else if(msg.message) {
-        msg = msg.message;
-        if(!(msg instanceof Array)) {
-          msg = [msg];
-        }
-
-        for(var i = 0, len = msg.length, m; i < len; i++) {
-          m = msg[i];
-          channel = getChannel(m.channel);
-          m.text = linkify(m.text);
-          m.ftime = pretty(m.time);
-          channel.messages.prepend(render(partial,m));
-          if(currentChannel !== channel.name) {
-            channel.unread++;
-            var tab = channel.tab;
-            var sup = tab.find("sup");
-            if(sup.length > 0) {
-              sup.html(channel.unread);
-            } else {
-              tab.append("<sup>"+channel.unread+"</sup");
-            }
-            if(!!m.text.toLowerCase().match(userNick)) {
-              tab.addClass("highlight");
-            }
-          }
-        }
-      } else if(msg.join || msg.part) {
-        
-      } else if(msg.echo) {
-        msg = msg.echo;
-        channel = getChannel(msg.channel);
-        msg.text = linkify(msg.text);
-        msg.ftime = pretty(msg.time);
-        channel.messages.prepend(render(partial, msg));
+    socket.on("topic", function handleTopic(msg) {
+      var channel = getChannel(msg.channel);
+      channel.topic = msg.topic;
+      if(currentChannel === msg.channel) {
+        title.html(linkify(msg.topic));
       }
+    });
+
+    socket.on("names", function handleNames(msg) {
+      var channel = getChannel(msg.channel);
+      channel.names = msg.names;
+      var users = channel.users;
+      users.empty();
+      for(var nick in msg.names) {
+        users.append("<li><u>"+nick+"</u></li>");
+      }
+    });
+
+    socket.on("echo", function handleEcho(msg) {
+      var channel = getChannel(msg.channel);
+      msg.text = linkify(msg.text);
+      msg.ftime = pretty(msg.time);
+      channel.messages.prepend(render(partial, msg));
+    });
+
+    socket.on("messages", function handleMessages(msg) {
+      var channel;
+      if(!(msg instanceof Array)) {
+        msg = [msg];
+      }
+
+      for(var i = 0, len = msg.length, m; i < len; i++) {
+        m = msg[i];
+        channel = getChannel(m.channel);
+        m.text = linkify(m.text);
+        m.ftime = pretty(m.time);
+        channel.messages.prepend(render(partial,m));
+        if(currentChannel !== channel.name) {
+          channel.unread++;
+          var tab = channel.tab;
+          var sup = tab.find("sup");
+          if(sup.length > 0) {
+            sup.html(channel.unread);
+          } else {
+            tab.append("<sup>"+channel.unread+"</sup");
+          }
+          if(!!m.text.toLowerCase().match(userNick)) {
+            tab.addClass("highlight");
+          }
+        }
+      }
+    });
+
+    socket.on('message', function(msg) {
+      console.log(msg);
     });
   }
 

@@ -1,10 +1,13 @@
+/*global require, console, exports, __dirname, module, process*/
+
+"use strict";
+
 // Imports
 var    fs = require('fs'),
    config = require("./config"),
   express = require('express'),
   connect = require('connect'),
    stylus = require("stylus"),
-everyauth = require('everyauth'),
       app = express.createServer();
 
 app.configure(function() {
@@ -30,6 +33,8 @@ app.configure(function() {
       maxAge: config.sessions.expires
     }
   }));
+
+  app.use(app.router);
 });
 
 app.configure('development', function() {
@@ -48,32 +53,27 @@ app.configure('production', function() {
   }));
 });
 
-app.configure(function() {
-  app.use(everyauth.middleware());
-  everyauth.helpExpress(app);
-  app.use(app.router);
-});
-
-
 
 // Bind the routes
+var ircConfig = config.irc;
 
 app.get("/", function(req, resp) {
   resp.render('newui.ejs', {
     "title": "IRC on the cloud",
-    "nick": config.irc.nick,
-    "name": config.irc.name
+    "nick": ircConfig.nick,
+    "name": ircConfig.name
   });
 });
 
-app.get("/old", function(req,resp){
+app.get("/old", function(req,resp) {
   resp.render('index.ejs',{
     title: 'IRC on the cloud',
     theme: 'aristo',
-    nick: config.irc.nick,
-    name: config.irc.name
+    nick: ircConfig.nick,
+    name: ircConfig.name
   });
 });
+
 
 // Start listening
 if (!module.parent) {
@@ -85,5 +85,5 @@ var backlog = {};
 var io = require("socket.io");
 io = io.listen(app);
 io.set('log level', 2);
-var ircClient = require("./lib/ircClient").init(config.irc, io, backlog);
-var mQueue = require("./lib/messageQueue").init(config.irc, io, backlog, ircClient);
+var ircClient = require("./lib/ircClient").init(ircConfig, io, backlog);
+var mQueue = require("./lib/messageQueue").init(ircConfig, io, backlog, ircClient);
