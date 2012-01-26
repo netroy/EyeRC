@@ -120,6 +120,7 @@ header .loginButton:hover {
 }
 
 
+
 #main {
   position: fixed;
   top: 35px;
@@ -149,7 +150,8 @@ ul.server {
 }
 
 ul.server li {
-  line-height: 32px;
+  font-size: 1.2em;
+  line-height: 3em;
   color: #fff;
   text-shadow: 0 1px 2px rgba(0,0,0,0.8);
   background-color: #666;
@@ -174,8 +176,9 @@ ul.server li:hover {
 
 ul.server li.console {
   background-color: #555;
-  padding-left: 20px;
-  font-size: 1.2em;
+  padding-left: 10px;
+  font-size: 1.4em;
+  line-height: 1.8em;
   border: 0 none;
   cursor: default;
 }
@@ -183,7 +186,7 @@ ul.server li.console {
 ul.server li sup {
   position: absolute;
   right: 10px;
-  top: 2px;
+  top: 6px;
   display: block;
   min-width: 18px;
   height: 18px;
@@ -191,13 +194,10 @@ ul.server li sup {
   border: 1px solid #555;
   background-color: #7D92E8;
   text-shadow: 0 1px 4px black;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+  box-shadow: 0 0 14px 1px rgba(255, 215, 0, 0.3);
   text-align: center;
-  font-size: 14px;
-  line-height: 16px;
-  font-weight: normal;
   border-radius: 20px;
-  padding: 4px;
+  padding: 6px;
 }
 
 ul.server li.highlight sup {
@@ -215,7 +215,6 @@ ul.server li.selected {
   font-weight: bold;
   color: #333;
   text-shadow: 1px 1px 1px #fff;
-  font-size: 1.2em;
   cursor: default;
   box-shadow: 0 1px 4px rgba(0,0,0,0.8) inset;
 }
@@ -223,6 +222,8 @@ ul.server li.selected {
 ul.server li.selected sup {
   display: none;
 }
+
+
 
 
 #Panel {
