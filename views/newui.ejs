@@ -10,7 +10,7 @@ if (typeof jQuery === 'undefined') {
 <script type="text/javascript">window.EYERC = {"nick":"<%=nick%>"};</script>
 
 <div id="main">
-  <div id="SideBar">
+  <div id="SideBar" class="unselectable">
     <ul class="server">
       <li class="console">irc.freenode.net</li>
     </ul>
@@ -23,7 +23,7 @@ if (typeof jQuery === 'undefined') {
     <ol class="users"></ol>
   </div>
 </div>
-<header>
+<header class="unselectable">
   <div class="menu"></div>
   <div class="title"></div>
   <button class="loginButton">Sign-in</button>

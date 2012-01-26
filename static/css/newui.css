@@ -13,6 +13,13 @@ body, input, select, button, textarea {
   35%  { opacity: 1.0;} 40%  { opacity: 0.1;} 50%  { opacity: 1.0;} 60%  { opacity: 0.1;} 65%  { opacity: 1.0;}
 }
 
+.unselectable {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 header, header .title:hover {
   background-image: -webkit-linear-gradient(top, #555, #444);
   background-image: -moz-linear-gradient(top, #555, #444);
