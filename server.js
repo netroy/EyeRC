@@ -1,34 +1,74 @@
 // Imports
 var    fs = require('fs'),
        io = require("socket.io"),
-      irc = require("irc"),
   express = require('express'),
   connect = require('connect'),
+   stylus = require("stylus"),
    events = require('events'),
+everyauth = require('everyauth'),
       app = express.createServer(),
-   config = require("./config").config;
+   config = require("./config");
 
-app.configure(function(){
-  app.use(express.static(__dirname + '/static'));
+app.configure(function() {
   app.set('views', __dirname + '/views');
   app.set('view engine', 'ejs');
+  app.use(stylus.middleware({
+    src: __dirname + '/src',
+    dest: __dirname + '/static',
+    compile: function (str, path, fn) {
+      return stylus(str).set('filename', path).set('compress', true);
+    }
+  }));
+  app.use(express.favicon(__dirname + '/static/favicon.ico'));
+
+  app.use(express.cookieParser());
   app.use(express.bodyParser());
-  app.use(connect.cookieParser());
-  app.use(connect.favicon());
+  app.use(express.session({
+    key: config.sessions.key,
+    secret: config.sessions.secret,
+    cookie: {
+      path: '/',
+      httpOnly: true,
+      maxAge: config.sessions.expires
+    }
+  }));
+});
+
+app.configure('development', function() {
+  app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
+  app.use(express.methodOverride());
+  app.use(express["static"](__dirname + '/static'));
+});
+
+app.configure('production', function() {
+  app.use(express.errorHandler());
+  app.enable('view cache');
+
+  // Use gzippo to compress all text content
+  app.use(require("gzippo").staticGzip(__dirname + '/static', {
+    maxAge: 86400*365
+  }));
+});
+
+app.configure(function() {
+  app.use(everyauth.middleware());
+  everyauth.helpExpress(app);
   app.use(app.router);
 });
 
-app.configure('development', function(){
-  app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
-  app.use(express.methodOverride());
-});
 
-app.configure('production', function(){
-  app.use(express.errorHandler());
-});
 
 // Bind the routes
-app.get("/", function(req,resp){
+
+app.get("/", function(req, resp) {
+  resp.render('newui.ejs', {
+    "title": "IRC on the cloud",
+    "nick": config.irc.nick,
+    "name": config.irc.name
+  });
+});
+
+app.get("/old", function(req,resp){
   resp.render('index.ejs',{
     title: 'IRC on the cloud',
     theme: 'aristo',
@@ -37,18 +77,11 @@ app.get("/", function(req,resp){
   });
 });
 
-app.get("/new", function(req, resp) {
-  resp.render('newui.ejs', {
-    "title": "IRC on the cloud",
-    "nick": config.irc.nick
-  });
-});
-
 // Start listening
 if (!module.parent) {
   io = io.listen(app);
   app.listen(process.env['app_port'] || config.http.port);
-  console.info("server started at http://localhost:%d/",app.address().port);
+  console.info("server started at http://localhost:%d/", app.address().port);
 }
 
 var backlog = {};
@@ -61,10 +94,10 @@ io.set('log level', 2);
 io.sockets.on('connection', function(client){
   mQueue.emit('connection', null);
 
-  for(var channel in backlog){
-    if(channel === 'server'){
+  for(var channel in backlog) {
+    if(channel === 'server') {
       client.json.send({'motd': backlog["server"]});
-    }else{
+    } else {
       client.json.send({'channel':channel, topic:backlog[channel]["topic"]});
       client.json.send({'channel':channel, names:backlog[channel]["names"]});
       client.json.send({'message': backlog[channel]["messages"]});
