@@ -67,11 +67,11 @@ header a:hover {
 
 header .menu {
   position: absolute;
-  top: 2px;
-  left: 2px;
+  top: 4px;
+  left: 4px;
   background: url('/images/settings.png') center center no-repeat;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border: 1px solid transparent;
   border-radius: 4px;
   cursor: pointer;
@@ -81,7 +81,7 @@ header .menu {
 }
 
 header .menu:hover {
-  border-color: #888;
+  border-color: #aaa;
   background-color: rgba(200,200,200,0.2);
 }
 
@@ -105,6 +105,13 @@ header .loginButton {
   cursor: pointer;
   display: inline-block;
 }
+
+header .loginButton:hover {
+  text-shadow: 0px 1px 4px #100;
+  box-shadow: 0 0 10px rgba(220,200,20,0.4);
+  border-color: #222;
+}
+
 
 #main {
   position: fixed;
