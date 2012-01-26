@@ -86,11 +86,11 @@ io.sockets.on('connection', function(client){
 irc.Client.prototype.away = function(message){
   if(typeof message !== 'undefined'){
     this.send('AWAY',message);
-    this.send('NICK', this.opt.nick+"|away");
+    //this.send('NICK', this.opt.nick+"|away");
     console.info("Gone away");
-  }else{
+  } else {
     this.conn.write("AWAY \r\n");
-    this.send('NICK', this.opt.nick);
+    //this.send('NICK', this.opt.nick);
     console.info("Came back");
   }
 };
@@ -188,6 +188,7 @@ mQueue.addListener('connection', function(){
     },15000);
   }
 });
+
 mQueue.addListener('disconnect', function(){
   clearTimeout(awayTimer);
   if(ircClient.conn.writable !== true) return;
