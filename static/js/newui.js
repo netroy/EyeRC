@@ -100,6 +100,7 @@
 
   var partial = "<p><u>{{from}}</u><time data='{{time}}'>{{ftime}}</time><span>{{text}}</span></p>";
   var userNick = window.EYERC.nick.toLowerCase();
+  var backLogged = false;
   function initWSConnection() {
     socket = io.connect();
     socket.on('connect', connected);
@@ -130,7 +131,7 @@
     });
 
     socket.on("messages", function handleMessages(msg) {
-      var channel;
+      var channel, tab, sup;
       if(!(msg instanceof Array)) {
         msg = [msg];
       }
@@ -141,20 +142,45 @@
         m.text = linkify(m.text);
         m.ftime = pretty(m.time);
         channel.messages.prepend(render(partial,m));
+        if(!backLogged) {
+          continue;
+        }
+
+        // Increment the unread marker
         if(currentChannel !== channel.name) {
           channel.unread++;
-          var tab = channel.tab;
-          var sup = tab.find("sup");
+          tab = channel.tab;
+          sup = tab.find("sup");
           if(sup.length > 0) {
             sup.html(channel.unread);
           } else {
             tab.append("<sup>"+channel.unread+"</sup");
           }
+        }
+      
+        // Highlight on mention
+        if(currentChannel !== channel.name) {
           if(!!m.text.toLowerCase().match(userNick)) {
             tab.addClass("highlight");
           }
         }
+      
+        // TODO: For Hidden/Background-page flash the document title & show notification if possible
+        // http://www.html5rocks.com/en/tutorials/notifications/quick/
+        // https://developer.mozilla.org/en/DOM/Using_the_Page_Visibility_API
       }
+    });
+
+    socket.on("join", function handleJoin(msg) {
+      
+    });
+  
+    socket.on("part", function handlePart(msg) {
+      
+    });
+
+    socket.on("backlog", function(msg) {
+      backLogged = true;
     });
 
     socket.on('message', function(msg) {
