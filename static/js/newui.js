@@ -33,7 +33,7 @@
 
   setInterval(prettyTime, 60*1000);
 
-  var entities = {"<":"&lt;",">":"&gt;",'&':'&amp;','"':'&quot;',"'": '&#32;'};
+  var entities = {"<":"&lt;",">":"&gt;",'&':'&amp;','"':'&quot;',"'": '&#0039;'};
   function linkify(text) {
     if(!text) return '';
     text = text.replace(/[&"'><]/g,function(match){
