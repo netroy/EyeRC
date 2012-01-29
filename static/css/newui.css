@@ -258,40 +258,87 @@ div.log {
   position: fixed;
   top: 100px;
   left: 220px;
-  right: 200px;
+  right: 10px;
   bottom: 10px;
+  font-family: "Ubuntu Mono", "Monaco", monospace;
+  font-size: 14px
 }
 
 div.log p {
-  font-size: 14px;
-  line-height: 20px;
+  line-height: 16px;
   padding: 10px;
   margin: 0;
   background-color:#FFF;
   border-bottom:1px solid #E0E2E9;
 }
+
 div.log time {
-  width: 80px;
+  width: 90px;
   display: inline-block;
   float:right;
   text-align: right;
   color:#888;
+  display: none;
 }
-div.log time, time:before, time:after{
+
+div.log time, time:before, time:after {
   font-size:10px;
 }
-div.log time:before{content:'[';padding-right:2px;color:#DDD;}
-div.log time:after{content:']';padding-left:2px;color:#DDD;}
-div.log p:hover time{color:#000;}
-div.log p span {font-size: 12px;}
-div.log p:nth-child(2n-1){background-color:#F0F2F0; color: #222;}
 
-div.log u{text-decoration:none;font-weight:bold;color:#444;padding-right:5px;display:inline-block;
-  min-width:100px;float:left;}
-div.log p>u:after{content:':';padding:0 3px;font-weight:normal;}
-div.log i{font-size: 10px;display: block;text-align: right;padding: 0 20px;color: black;}
+div.log time:before {
+  content: '[';
+  padding-right: 2px;
+  color: #DDD;
+}
+
+div.log time:after {
+  content: ']';
+  padding-left: 2px;
+  color: #DDD;
+}
+
+div.log p:hover time {
+  color: #000;
+}
+
+div.log p span {
+  color: #333;
+}
+
+div.log p:nth-child(2n-1) {
+  background-color:#F0F2F0;
+}
+
+div.log u {
+  text-decoration: none;
+  color: hsl(215, 90%, 50%);
+  padding-right: 10px;
+  display: inline-block;
+  float: left;
+}
+
+div.log p > u:after {
+  content: '>';
+  padding: 0 1px;
+  font-weight: normal;
+}
+
+div.log p > u:before {
+  content: '<';
+  padding: 0 1px;
+  font-weight: normal;
+}
+
+div.log i {
+  font-size: 10px;
+  display: block;
+  text-align: right;
+  padding: 0 20px;
+  color: black;
+}
 
 ol.users {
+  display: none;
   overflow: auto;
   position: fixed;
   top: 100px;
@@ -316,7 +363,7 @@ ol.users li:hover {
   text-shadow: 0 0 3px rgba(150,100,10,0.9);
 }
 
-ol.users li u{
+ol.users li u {
   display: block;
   padding: 5px 15px;
   text-decoration: none;
