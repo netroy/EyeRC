@@ -2,88 +2,42 @@
 
 "use strict";
 
-// Imports
-var    fs = require('fs'),
-   config = require("./config"),
-  express = require('express'),
-  connect = require('connect'),
-   stylus = require("stylus"),
-      app = express.createServer();
+const path = require('path');
+const http = require('http');
+const express = require('express');
+const socketIO = require('socket.io');
+const stylus = require("stylus");
 
-app.configure(function() {
-  app.set('views', __dirname + '/views');
-  app.set('view engine', 'ejs');
-  app.use(stylus.middleware({
-    src: __dirname + '/src',
-    dest: __dirname + '/static',
-    compile: function (str, path, fn) {
-      return stylus(str).set('filename', path).set('compress', true);
-    }
-  }));
-  app.use(express.favicon(__dirname + '/static/favicon.ico'));
+const config = require("./config");
 
-  app.use(express.cookieParser());
-  app.use(express.bodyParser());
-  app.use(express.session({
-    key: config.sessions.key,
-    secret: config.sessions.secret,
-    cookie: {
-      path: '/',
-      httpOnly: true,
-      maxAge: config.sessions.expires
-    }
-  }));
+const app = express();
+const server = http.Server(app);
+const io = socketIO(server);
 
-  app.use(app.router);
-});
-
-app.configure('development', function() {
-  app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
-  app.use(express.methodOverride());
-  app.use(express["static"](__dirname + '/static'));
-});
-
-app.configure('production', function() {
-  app.use(express.errorHandler());
-  app.enable('view cache');
-
-  // Use gzippo to compress all text content
-  app.use(require("gzippo").staticGzip(__dirname + '/static', {
-    maxAge: 86400*365
-  }));
-});
-
-
-// Bind the routes
-var ircConfig = config.irc;
+app.set('views', __dirname + '/views');
+app.set('view engine', 'ejs');
+app.use(stylus.middleware({
+  src: __dirname + '/src',
+  dest: __dirname + '/static',
+  compile: (str, path) => stylus(str).set('filename', path).set('compress', true)
+}));
+app.use(express.static(path.resolve(__dirname, 'static')))
 
 app.get("/", function(req, resp) {
   resp.render('newui.ejs', {
     "title": "IRC on the cloud",
-    "nick": ircConfig.nick,
-    "name": ircConfig.name
+    "nick": config.irc.nick,
+    "name": config.irc.name
   });
 });
-
-app.get("/old", function(req,resp) {
-  resp.render('index.ejs',{
-    title: 'IRC on the cloud',
-    theme: 'aristo',
-    nick: ircConfig.nick,
-    name: ircConfig.name
-  });
-});
-
 
 // Start listening
 if (!module.parent) {
-  app.listen(process.env['app_port'] || config.http.port);
-  console.info("server started at http://localhost:%d/", app.address().port);
+  const port = process.env['app_port'] || config.http.port
+  server.listen(port);
+  console.info("server started at http://localhost:%d/", port);
 }
 
 var backlog = {};
-var io = require("socket.io");
-io = io.listen(app);
-io.set('log level', 1);
-var ircClient = require("./lib/ircClient").init(ircConfig, io, backlog);
-var mQueue = require("./lib/messageQueue").init(ircConfig, io, backlog, ircClient);
+var ircClient = require("./lib/ircClient").init(config.irc, io, backlog);
+require("./lib/messageQueue").init(config.irc, io, backlog, ircClient);

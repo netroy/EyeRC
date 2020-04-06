@@ -1,16 +1,17 @@
 {
   "name": "eyerc",
-  "subdomain": "eyerc",
+  "version": "0.0.1",
   "scripts": {
-    "start": "server.js"
+    "start": "node server.js"
   },
-  "version": "0.0.0-5",
   "dependencies": {
-    "socket.io": "0.7.11",
-    "ejs": "0.4.3",
-    "irc": "0.2.0",
-    "express": "2.4.6",
-    "connect": "1.6.4",
-    "gzippo": ">= 0.1.0"
+    "ejs": "^3.0.2",
+    "express": "^4.17.1",
+    "irc": "^0.5.2",
+    "socket.io": "^2.3.0",
+    "stylus": "^0.54.7"
+  },
+  "engines": {
+    "node": ">=12.16.0"
   }
 }
